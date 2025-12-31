@@ -1,0 +1,258 @@
+[
+  {
+    "bubble_id": 0,
+    "original": "たかす 高須君 どうにかして くれんかのぉ~",
+    "translated": "Takasu, Takasu-kun, can't you do something about it?",
+    "context": "*",
+    "model_used": "latency_optimized",
+    "billed_characters": 22,
+    "final_box": [
+      [
+        [641, 93],
+        [648, 93],
+        [641, 119],
+        [648, 119]
+      ],
+      [
+        [627, 93],
+        [642, 93],
+        [627, 139],
+        [642, 139]
+      ],
+      [
+        [610, 92],
+        [621, 92],
+        [610, 181],
+        [621, 181]
+      ],
+      [
+        [591, 94],
+        [604, 94],
+        [591, 197],
+        [604, 197]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 1,
+    "original": "*",
+    "translated": "*",
+    "context": "たかす 高須君 どうにかして くれんかのぉ~\nおこちゃん しゃからよ しぶどうな",
+    "model_used": "latency_optimized",
+    "billed_characters": 1,
+    "final_box": [
+      [
+        [599, 389],
+        [617, 389],
+        [599, 410],
+        [617, 410]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 2,
+    "original": "おこちゃん しゃからよ しぶどうな",
+    "translated": "It's your turn.",
+    "context": "*\nなんで俺っ",
+    "model_used": "latency_optimized",
+    "billed_characters": 17,
+    "final_box": [
+      [
+        [591, 244],
+        [605, 244],
+        [591, 290],
+        [605, 290]
+      ],
+      [
+        [579, 257],
+        [589, 257],
+        [579, 317],
+        [589, 317]
+      ],
+      [
+        [565, 258],
+        [576, 258],
+        [565, 312],
+        [576, 312]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 3,
+    "original": "なんで俺っ",
+    "translated": "Why me?",
+    "context": "おこちゃん しゃからよ しぶどうな\nたいが ほれほれ大河 くろ 高須君の黒ちくびだよ!",
+    "model_used": "latency_optimized",
+    "billed_characters": 5,
+    "final_box": [
+      [
+        [459, 124],
+        [474, 124],
+        [459, 202],
+        [474, 202]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 4,
+    "original": "たいが ほれほれ大河 くろ 高須君の黒ちくびだよ!",
+    "translated": "Taiga, here, here, Okawa. It's Kuro, Takasu-kun's black stump!",
+    "context": "なんで俺っ\n高須君って 夏休み空いてたり する~?",
+    "model_used": "latency_optimized",
+    "billed_characters": 25,
+    "final_box": [
+      [
+        [642, 501],
+        [648, 501],
+        [642, 523],
+        [648, 523]
+      ],
+      [
+        [629, 447],
+        [641, 447],
+        [629, 526],
+        [641, 526]
+      ],
+      [
+        [623, 500],
+        [628, 500],
+        [623, 512],
+        [628, 512]
+      ],
+      [
+        [610, 448],
+        [623, 448],
+        [610, 589],
+        [623, 589]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 5,
+    "original": "高須君って 夏休み空いてたり する~?",
+    "translated": "Takasu, do you have any free time during summer holiday?",
+    "context": "たいが ほれほれ大河 くろ 高須君の黒ちくびだよ!\nゴミレーズン・・・",
+    "model_used": "latency_optimized",
+    "billed_characters": 19,
+    "final_box": [
+      [
+        [584, 726],
+        [597, 726],
+        [584, 800],
+        [597, 800]
+      ],
+      [
+        [562, 727],
+        [576, 727],
+        [562, 843],
+        [576, 843]
+      ],
+      [
+        [545, 725],
+        [555, 725],
+        [545, 785],
+        [555, 785]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 6,
+    "original": "ゴミレーズン・・・",
+    "translated": "Rubbish raisins...",
+    "context": "高須君って 夏休み空いてたり する~?\nあっ",
+    "model_used": "latency_optimized",
+    "billed_characters": 9,
+    "final_box": [
+      [
+        [418, 444],
+        [428, 444],
+        [418, 536],
+        [428, 536]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 7,
+    "original": "あっ",
+    "translated": "Hey, hey!",
+    "context": "ゴミレーズン・・・\nねぇねぇ!",
+    "model_used": "latency_optimized",
+    "billed_characters": 2,
+    "final_box": [
+      [
+        [131, 523],
+        [144, 523],
+        [131, 549],
+        [144, 549]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 8,
+    "original": "ねぇねぇ!",
+    "translated": "Hey, hey!",
+    "context": "あっ\nべっそう うち別荘が あって~ 良かったら いっしょ 一緒に過ごさない? 一緒に過ごさない?",
+    "model_used": "latency_optimized",
+    "billed_characters": 5,
+    "final_box": [
+      [
+        [93, 557],
+        [104, 557],
+        [93, 629],
+        [104, 629]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 9,
+    "original": "べっそう うち別荘が あって~ 良かったら いっしょ 一緒に過ごさない? 一緒に過ごさない?",
+    "translated": "We have another villa... would you like to spend the night with us? Spend the night with me?",
+    "context": "ねぇねぇ!",
+    "model_used": "latency_optimized",
+    "billed_characters": 46,
+    "final_box": [
+      [
+        [193, 847],
+        [200, 847],
+        [193, 877],
+        [200, 877]
+      ],
+      [
+        [178, 810],
+        [192, 810],
+        [178, 890],
+        [192, 890]
+      ],
+      [
+        [161, 810],
+        [172, 810],
+        [161, 871],
+        [172, 871]
+      ],
+      [
+        [121, 840],
+        [132, 840],
+        [121, 912],
+        [132, 912]
+      ],
+      [
+        [112, 841],
+        [118, 841],
+        [112, 869],
+        [118, 869]
+      ],
+      [
+        [98, 846],
+        [111, 846],
+        [98, 972],
+        [111, 972]
+      ],
+      [
+        [98, 846],
+        [111, 846],
+        [98, 972],
+        [111, 972]
+      ]
+    ]
+  }
+]

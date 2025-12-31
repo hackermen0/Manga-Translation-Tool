@@ -1,0 +1,377 @@
+[
+  {
+    "bubble_id": 0,
+    "original": "てんし 天使じゃあ!!!",
+    "translated": "Tenshi, you're an angel!",
+    "model_used": "latency_optimized",
+    "billed_characters": 12,
+    "final_box": [
+      [
+        [631, 57],
+        [638, 57],
+        [631, 90],
+        [638, 90]
+      ],
+      [
+        [611, 57],
+        [630, 57],
+        [611, 172],
+        [630, 172]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 1,
+    "original": "み 生き神さま じゃあ!!!!",
+    "translated": "Mi Living Gods Then !!!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 15,
+    "final_box": [
+      [
+        [550, 148],
+        [557, 148],
+        [550, 156],
+        [557, 156]
+      ],
+      [
+        [529, 99],
+        [547, 99],
+        [529, 196],
+        [547, 196]
+      ],
+      [
+        [504, 97],
+        [521, 97],
+        [504, 175],
+        [521, 175]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 2,
+    "original": "あみちゃん今日も 最",
+    "translated": "Ami, you're the best today.",
+    "model_used": "latency_optimized",
+    "billed_characters": 10,
+    "final_box": [
+      [
+        [394, 3],
+        [437, 3],
+        [394, 228],
+        [437, 228]
+      ],
+      [
+        [369, 104],
+        [401, 104],
+        [369, 150],
+        [401, 150]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 3,
+    "original": "高に",
+    "translated": "even now",
+    "model_used": "latency_optimized",
+    "billed_characters": 2,
+    "final_box": [
+      [
+        [370, 155],
+        [402, 155],
+        [370, 222],
+        [402, 222]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 4,
+    "original": "･･･俺には こう見える",
+    "translated": "... I see it this way.",
+    "model_used": "latency_optimized",
+    "billed_characters": 12,
+    "final_box": [
+      [
+        [162, 321],
+        [177, 321],
+        [162, 381],
+        [177, 381]
+      ],
+      [
+        [138, 319],
+        [152, 319],
+        [138, 400],
+        [152, 400]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 5,
+    "original": "は は は か",
+    "translated": "Mothers and mothers",
+    "model_used": "latency_optimized",
+    "billed_characters": 7,
+    "final_box": [
+      [
+        [117, 262],
+        [161, 262],
+        [117, 304],
+        [161, 304]
+      ],
+      [
+        [103, 238],
+        [143, 238],
+        [103, 273],
+        [143, 273]
+      ],
+      [
+        [88, 213],
+        [127, 213],
+        [88, 247],
+        [127, 247]
+      ],
+      [
+        [71, 183],
+        [117, 183],
+        [71, 228],
+        [117, 228]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 6,
+    "original": "おっし",
+    "translated": "42nd of the sexagenary cycle",
+    "model_used": "latency_optimized",
+    "billed_characters": 3,
+    "final_box": [
+      [
+        [608, 447],
+        [618, 447],
+        [608, 486],
+        [618, 486]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 7,
+    "original": "いや本当 亜美タンと 同じクラスになれて 良かった プールって いいもんだな!",
+    "translated": "I'm glad you and Ami are in the same class. Pools are great!",
+    "model_used": "latency_optimized",
+    "billed_characters": 39,
+    "final_box": [
+      [
+        [638, 673],
+        [650, 673],
+        [638, 732],
+        [650, 732]
+      ],
+      [
+        [620, 671],
+        [631, 671],
+        [620, 730],
+        [631, 730]
+      ],
+      [
+        [601, 674],
+        [612, 674],
+        [601, 781],
+        [612, 781]
+      ],
+      [
+        [584, 670],
+        [594, 670],
+        [584, 717],
+        [594, 717]
+      ],
+      [
+        [555, 733],
+        [567, 733],
+        [555, 797],
+        [567, 797]
+      ],
+      [
+        [538, 734],
+        [549, 734],
+        [538, 821],
+        [549, 821]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 8,
+    "original": "アツくなってきたし 俺らも入りますか",
+    "translated": "It's getting hotter. We're going in.",
+    "model_used": "latency_optimized",
+    "billed_characters": 18,
+    "final_box": [
+      [
+        [565, 470],
+        [575, 470],
+        [565, 587],
+        [575, 587]
+      ],
+      [
+        [545, 469],
+        [558, 469],
+        [545, 573],
+        [558, 573]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 9,
+    "original": "い",
+    "translated": "(after a noun, adjective-stem or plain verb) just keeps",
+    "model_used": "latency_optimized",
+    "billed_characters": 1,
+    "final_box": [
+      [
+        [142, 542],
+        [158, 542],
+        [142, 567],
+        [158, 567]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 10,
+    "original": "おれふか 俺が深いとは 言えないが",
+    "translated": "I can't say I'm deep.",
+    "model_used": "latency_optimized",
+    "billed_characters": 17,
+    "final_box": [
+      [
+        [444, 684],
+        [452, 684],
+        [444, 731],
+        [452, 731]
+      ],
+      [
+        [428, 683],
+        [444, 683],
+        [428, 779],
+        [444, 779]
+      ],
+      [
+        [403, 684],
+        [418, 684],
+        [403, 764],
+        [418, 764]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 11,
+    "original": "あれ!!! 高須!!",
+    "translated": "That!!! Takasu!",
+    "model_used": "latency_optimized",
+    "billed_characters": 10,
+    "final_box": [
+      [
+        [320, 692],
+        [332, 692],
+        [320, 736],
+        [332, 736]
+      ],
+      [
+        [298, 692],
+        [312, 692],
+        [298, 736],
+        [312, 736]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 12,
+    "original": "いいもんだ!!!",
+    "translated": "It's good stuff!!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 8,
+    "final_box": [
+      [
+        [492, 862],
+        [503, 862],
+        [492, 938],
+        [503, 938]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 13,
+    "original": "何その顔!",
+    "translated": "What's with your face!",
+    "model_used": "latency_optimized",
+    "billed_characters": 5,
+    "final_box": [
+      [
+        [271, 744],
+        [285, 744],
+        [271, 817],
+        [285, 817]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 14,
+    "original": "･･･おまえらは 浅い･･･",
+    "translated": "...you're shallow...",
+    "model_used": "latency_optimized",
+    "billed_characters": 14,
+    "final_box": [
+      [
+        [193, 702],
+        [210, 702],
+        [193, 817],
+        [210, 817]
+      ],
+      [
+        [164, 700],
+        [181, 700],
+        [164, 758],
+        [181, 758]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 15,
+    "original": "あ!",
+    "translated": "Ah!",
+    "model_used": "latency_optimized",
+    "billed_characters": 2,
+    "final_box": [
+      [
+        [104, 790],
+        [117, 790],
+        [104, 823],
+        [117, 823]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 16,
+    "original": "おーい 高須君! 高須君!",
+    "translated": "Hey, Takasu-kun! Takasu-kun!",
+    "model_used": "latency_optimized",
+    "billed_characters": 13,
+    "final_box": [
+      [
+        [87, 863],
+        [98, 863],
+        [87, 900],
+        [98, 900]
+      ],
+      [
+        [65, 861],
+        [78, 861],
+        [65, 912],
+        [78, 912]
+      ],
+      [
+        [65, 861],
+        [78, 861],
+        [65, 912],
+        [78, 912]
+      ]
+    ]
+  }
+]

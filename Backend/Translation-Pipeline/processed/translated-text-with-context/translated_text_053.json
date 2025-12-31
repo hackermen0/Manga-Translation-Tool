@@ -1,0 +1,340 @@
+[
+  {
+    "bubble_id": 0,
+    "original": " ",
+    "translated": "Don't pick on Big River!",
+    "context": "? ! !",
+    "model_used": "latency_optimized",
+    "billed_characters": 25,
+    "final_box": [
+      [
+        [638, 59],
+        [646, 59],
+        [638, 95],
+        [646, 95]
+      ],
+      [
+        [615, 56],
+        [635, 56],
+        [615, 125],
+        [635, 125]
+      ],
+      [
+        [587, 59],
+        [607, 59],
+        [587, 216],
+        [607, 216]
+      ],
+      [
+        [556, 58],
+        [581, 58],
+        [556, 237],
+        [581, 237]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 1,
+    "original": "? ! !",
+    "translated": "? ! !",
+    "context": "たいが 大河を いじめるんじゃ ありませーん!!!\ne h T",
+    "model_used": "latency_optimized",
+    "billed_characters": 5,
+    "final_box": [
+      [
+        [488, 295],
+        [506, 295],
+        [488, 327],
+        [506, 327]
+      ],
+      [
+        [478, 295],
+        [488, 295],
+        [478, 327],
+        [488, 327]
+      ],
+      [
+        [467, 295],
+        [478, 295],
+        [467, 327],
+        [478, 327]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 2,
+    "original": "e h T",
+    "translated": "E h T",
+    "context": "? ! !\nたいが か? 大河をいじめる輩には 教えません",
+    "model_used": "latency_optimized",
+    "billed_characters": 5,
+    "final_box": [
+      [
+        [363, 292],
+        [407, 292],
+        [363, 367],
+        [407, 367]
+      ],
+      [
+        [333, 291],
+        [405, 291],
+        [333, 367],
+        [405, 367]
+      ],
+      [
+        [265, 289],
+        [360, 289],
+        [265, 366],
+        [360, 366]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 3,
+    "original": "たいが か? 大河をいじめる輩には 教えません",
+    "translated": "You're a big fish? I won't tell anyone who picks on Taiga.",
+    "context": "e h T\nはっはっは! 見たか!",
+    "model_used": "latency_optimized",
+    "billed_characters": 23,
+    "final_box": [
+      [
+        [133, 479],
+        [139, 479],
+        [133, 504],
+        [139, 504]
+      ],
+      [
+        [134, 587],
+        [139, 587],
+        [134, 597],
+        [139, 597]
+      ],
+      [
+        [117, 483],
+        [131, 483],
+        [117, 624],
+        [131, 624]
+      ],
+      [
+        [95, 479],
+        [109, 479],
+        [95, 581],
+        [109, 581]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 4,
+    "original": "はっはっは! 見たか!",
+    "translated": "Ha-ha-ha! See that!",
+    "context": "たいが か? 大河をいじめる輩には 教えません\nってか いじめてねーよっ!! コイツが ドジなんだって!!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 11,
+    "final_box": [
+      [
+        [663, 480],
+        [678, 480],
+        [663, 577],
+        [678, 577]
+      ],
+      [
+        [637, 480],
+        [652, 480],
+        [637, 545],
+        [652, 545]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 5,
+    "original": "ってか いじめてねーよっ!! コイツが ドジなんだって!!!",
+    "translated": "I mean, I'm not picking on him! He's just being a bum!",
+    "context": "はっはっは! 見たか!\nくしえだけひでん 御家伝のカ!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 30,
+    "final_box": [
+      [
+        [628, 750],
+        [638, 750],
+        [628, 787],
+        [638, 787]
+      ],
+      [
+        [611, 750],
+        [622, 750],
+        [611, 865],
+        [622, 865]
+      ],
+      [
+        [581, 815],
+        [591, 815],
+        [581, 863],
+        [591, 863]
+      ],
+      [
+        [565, 812],
+        [576, 812],
+        [565, 915],
+        [576, 915]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 6,
+    "original": "くしえだけひでん 御家伝のカ!!",
+    "translated": "Kushie dake hiden oke-densetsu no ka!",
+    "context": "ってか いじめてねーよっ!! コイツが ドジなんだって!!!\nみのりん すごーい!!!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 16,
+    "final_box": [
+      [
+        [623, 537],
+        [630, 537],
+        [623, 617],
+        [630, 617]
+      ],
+      [
+        [605, 537],
+        [622, 537],
+        [605, 667],
+        [622, 667]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 7,
+    "original": "みのりん すごーい!!!!",
+    "translated": "Minorin, amazing! !!!!",
+    "context": "くしえだけひでん 御家伝のカ!!\n今のっ",
+    "model_used": "latency_optimized",
+    "billed_characters": 13,
+    "final_box": [
+      [
+        [377, 579],
+        [393, 579],
+        [377, 654],
+        [393, 654]
+      ],
+      [
+        [353, 579],
+        [370, 579],
+        [353, 697],
+        [370, 697]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 8,
+    "original": "今のっ",
+    "translated": "Just now!",
+    "context": "みのりん すごーい!!!!\n今のどうやった!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 3,
+    "final_box": [
+      [
+        [304, 479],
+        [319, 479],
+        [304, 519],
+        [319, 519]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 9,
+    "original": "今のどうやった!!",
+    "translated": "How did you do that!",
+    "context": "今のっ\nちょっと ま",
+    "model_used": "latency_optimized",
+    "billed_characters": 9,
+    "final_box": [
+      [
+        [274, 498],
+        [292, 498],
+        [274, 614],
+        [292, 614]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 10,
+    "original": "ちょっと ま",
+    "translated": "Hey, wait a minute.",
+    "context": "今のどうやった!!\nH",
+    "model_used": "latency_optimized",
+    "billed_characters": 6,
+    "final_box": [
+      [
+        [241, 473],
+        [254, 473],
+        [241, 519],
+        [254, 519]
+      ],
+      [
+        [225, 478],
+        [238, 478],
+        [225, 496],
+        [238, 496]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 11,
+    "original": "H",
+    "translated": "H",
+    "context": "ちょっと ま\nなんですって!!!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 1,
+    "final_box": [
+      [
+        [313, 771],
+        [321, 771],
+        [313, 780],
+        [321, 780]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 12,
+    "original": "なんですって!!!!",
+    "translated": "What? !!!!",
+    "context": "H\nとい といて といて",
+    "model_used": "latency_optimized",
+    "billed_characters": 10,
+    "final_box": [
+      [
+        [382, 753],
+        [396, 753],
+        [382, 855],
+        [396, 855]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 13,
+    "original": "とい といて といて",
+    "translated": "Ask.",
+    "context": "なんですって!!!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 10,
+    "final_box": [
+      [
+        [137, 806],
+        [163, 806],
+        [137, 867],
+        [163, 867]
+      ],
+      [
+        [98, 806],
+        [125, 806],
+        [98, 900],
+        [125, 900]
+      ],
+      [
+        [98, 806],
+        [125, 806],
+        [98, 900],
+        [125, 900]
+      ]
+    ]
+  }
+]

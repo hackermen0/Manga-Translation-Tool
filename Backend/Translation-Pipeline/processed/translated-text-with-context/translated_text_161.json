@@ -1,0 +1,208 @@
+[
+  {
+    "bubble_id": 0,
+    "original": "好きな色",
+    "translated": "Favourite colour.",
+    "context": "とうめい?",
+    "model_used": "latency_optimized",
+    "billed_characters": 4,
+    "final_box": [
+      [
+        [260, 213],
+        [278, 213],
+        [260, 272],
+        [278, 272]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 1,
+    "original": "とうめい?",
+    "translated": "Ninja...",
+    "context": "好きな色\nスケルトンとは よく言った もんだなぁ ind にんじゃ 忍者･･･",
+    "model_used": "latency_optimized",
+    "billed_characters": 5,
+    "final_box": [
+      [
+        [213, 299],
+        [240, 299],
+        [213, 454],
+        [240, 454]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 2,
+    "original": "スケルトンとは よく言った もんだなぁ ind にんじゃ 忍者･･･",
+    "translated": "Skeletons, that's what you call them... ind ninjas, ninjas...",
+    "context": "とうめい?\nえ? はいて ないって事?",
+    "model_used": "latency_optimized",
+    "billed_characters": 34,
+    "final_box": [
+      [
+        [639, 669],
+        [650, 669],
+        [639, 759],
+        [650, 759]
+      ],
+      [
+        [619, 668],
+        [630, 668],
+        [619, 732],
+        [630, 732]
+      ],
+      [
+        [604, 668],
+        [614, 668],
+        [604, 731],
+        [614, 731]
+      ],
+      [
+        [583, 656],
+        [590, 656],
+        [583, 674],
+        [590, 674]
+      ],
+      [
+        [526, 664],
+        [533, 664],
+        [526, 693],
+        [533, 693]
+      ],
+      [
+        [511, 663],
+        [523, 663],
+        [511, 708],
+        [523, 708]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 3,
+    "original": "え? はいて ないって事?",
+    "translated": "What? You mean you're not wearing them?",
+    "context": "スケルトンとは よく言った もんだなぁ ind にんじゃ 忍者･･･\n負けた!!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 13,
+    "final_box": [
+      [
+        [431, 647],
+        [443, 647],
+        [431, 678],
+        [443, 678]
+      ],
+      [
+        [412, 648],
+        [423, 648],
+        [412, 692],
+        [423, 692]
+      ],
+      [
+        [388, 648],
+        [402, 648],
+        [388, 735],
+        [402, 735]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 4,
+    "original": "負けた!!!",
+    "translated": "I lost!!!",
+    "context": "え? はいて ないって事?\n......",
+    "model_used": "latency_optimized",
+    "billed_characters": 6,
+    "final_box": [
+      [
+        [316, 649],
+        [330, 649],
+        [316, 706],
+        [330, 706]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 5,
+    "original": "......",
+    "translated": "......",
+    "context": "負けた!!!\nい ま し お",
+    "model_used": "latency_optimized",
+    "billed_characters": 6,
+    "final_box": [
+      [
+        [227, 717],
+        [231, 717],
+        [227, 753],
+        [231, 753]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 6,
+    "original": "い ま し お",
+    "translated": "A. M. K.",
+    "context": "......\n0 0 6 1",
+    "model_used": "latency_optimized",
+    "billed_characters": 7,
+    "final_box": [
+      [
+        [407, 959],
+        [443, 959],
+        [407, 989],
+        [443, 989]
+      ],
+      [
+        [370, 959],
+        [403, 959],
+        [370, 989],
+        [403, 989]
+      ],
+      [
+        [336, 959],
+        [366, 959],
+        [336, 989],
+        [366, 989]
+      ],
+      [
+        [297, 959],
+        [333, 959],
+        [297, 989],
+        [333, 989]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 7,
+    "original": "0 0 6 1",
+    "translated": "0 0 0 6 1",
+    "context": "い ま し お",
+    "model_used": "latency_optimized",
+    "billed_characters": 7,
+    "final_box": [
+      [
+        [653, 977],
+        [663, 977],
+        [653, 989],
+        [663, 989]
+      ],
+      [
+        [653, 977],
+        [663, 977],
+        [653, 989],
+        [663, 989]
+      ],
+      [
+        [642, 977],
+        [653, 977],
+        [642, 989],
+        [653, 989]
+      ],
+      [
+        [635, 978],
+        [643, 978],
+        [635, 990],
+        [643, 990]
+      ]
+    ]
+  }
+]

@@ -1,0 +1,508 @@
+[
+  {
+    "bubble_id": 0,
+    "original": "春田 3持ってないで 2でレポったの?",
+    "translated": "Haruta, did you report with 2 instead of 3?",
+    "context": "おいおまえ もしかして もう強いの 持ってないんじゃ…",
+    "model_used": "latency_optimized",
+    "billed_characters": 19,
+    "final_box": [
+      [
+        [579, 124],
+        [590, 124],
+        [579, 150],
+        [590, 150]
+      ],
+      [
+        [560, 128],
+        [571, 128],
+        [560, 215],
+        [571, 215]
+      ],
+      [
+        [544, 126],
+        [554, 126],
+        [544, 226],
+        [554, 226]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 1,
+    "original": "おいおまえ もしかして もう強いの 持ってないんじゃ…",
+    "translated": "Hey, maybe you don't have a strong one anymore...",
+    "context": "春田 3持ってないで 2でレポったの?\n弱いのか?",
+    "model_used": "latency_optimized",
+    "billed_characters": 27,
+    "final_box": [
+      [
+        [342, 83],
+        [352, 83],
+        [342, 149],
+        [352, 149]
+      ],
+      [
+        [327, 82],
+        [336, 82],
+        [327, 143],
+        [336, 143]
+      ],
+      [
+        [308, 82],
+        [318, 82],
+        [308, 142],
+        [318, 142]
+      ],
+      [
+        [288, 82],
+        [299, 82],
+        [288, 191],
+        [299, 191]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 2,
+    "original": "弱いのか?",
+    "translated": "Are you weak?",
+    "context": "おいおまえ もしかして もう強いの 持ってないんじゃ…\n俺さっき 出したし",
+    "model_used": "latency_optimized",
+    "billed_characters": 5,
+    "final_box": [
+      [
+        [151, 97],
+        [162, 97],
+        [151, 157],
+        [162, 157]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 3,
+    "original": "俺さっき 出したし",
+    "translated": "I just did.",
+    "context": "弱いのか?\nレボ? レボリューション 革命",
+    "model_used": "latency_optimized",
+    "billed_characters": 9,
+    "final_box": [
+      [
+        [235, 151],
+        [247, 151],
+        [235, 215],
+        [247, 215]
+      ],
+      [
+        [216, 152],
+        [225, 152],
+        [216, 202],
+        [225, 202]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 4,
+    "original": "レボ? レボリューション 革命",
+    "translated": "Revo? Revolution. Revolution.",
+    "context": "俺さっき 出したし\nアホ?",
+    "model_used": "latency_optimized",
+    "billed_characters": 15,
+    "final_box": [
+      [
+        [418, 225],
+        [429, 225],
+        [418, 267],
+        [429, 267]
+      ],
+      [
+        [401, 282],
+        [407, 282],
+        [401, 323],
+        [407, 323]
+      ],
+      [
+        [383, 285],
+        [399, 285],
+        [383, 320],
+        [399, 320]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 5,
+    "original": "アホ?",
+    "translated": "Stupid?",
+    "context": "レボ? レボリューション 革命\nバカ?",
+    "model_used": "latency_optimized",
+    "billed_characters": 3,
+    "final_box": [
+      [
+        [90, 224],
+        [99, 224],
+        [90, 258],
+        [99, 258]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 6,
+    "original": "バカ?",
+    "translated": "Stupid?",
+    "context": "アホ?\n民 貧 大",
+    "model_used": "latency_optimized",
+    "billed_characters": 3,
+    "final_box": [
+      [
+        [70, 290],
+        [80, 290],
+        [70, 328],
+        [80, 328]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 7,
+    "original": "民 貧 大",
+    "translated": "People poor Large",
+    "context": "バカ?\n民 貧",
+    "model_used": "latency_optimized",
+    "billed_characters": 5,
+    "final_box": [
+      [
+        [153, 470],
+        [171, 470],
+        [153, 488],
+        [171, 488]
+      ],
+      [
+        [133, 470],
+        [151, 470],
+        [133, 488],
+        [151, 488]
+      ],
+      [
+        [114, 470],
+        [132, 470],
+        [114, 488],
+        [132, 488]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 8,
+    "original": "民 貧",
+    "translated": "People's Poverty",
+    "context": "民 貧 大\n果 結",
+    "model_used": "latency_optimized",
+    "billed_characters": 3,
+    "final_box": [
+      [
+        [281, 471],
+        [300, 471],
+        [281, 487],
+        [300, 487]
+      ],
+      [
+        [262, 472],
+        [282, 472],
+        [262, 488],
+        [282, 488]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 9,
+    "original": "果 結",
+    "translated": "Fruit",
+    "context": "民 貧\n豪 富",
+    "model_used": "latency_optimized",
+    "billed_characters": 3,
+    "final_box": [
+      [
+        [355, 411],
+        [378, 411],
+        [355, 432],
+        [378, 432]
+      ],
+      [
+        [321, 411],
+        [344, 411],
+        [321, 432],
+        [344, 432]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 10,
+    "original": "豪 富",
+    "translated": "Australia Wealth",
+    "context": "果 結\n受けてしまた",
+    "model_used": "latency_optimized",
+    "billed_characters": 3,
+    "final_box": [
+      [
+        [428, 469],
+        [448, 469],
+        [428, 489],
+        [448, 489]
+      ],
+      [
+        [409, 469],
+        [428, 469],
+        [409, 489],
+        [428, 489]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 11,
+    "original": "受けてしまた",
+    "translated": "I took it.",
+    "context": "豪 富\nセコイ たすかった",
+    "model_used": "latency_optimized",
+    "billed_characters": 6,
+    "final_box": [
+      [
+        [174, 510],
+        [182, 510],
+        [174, 568],
+        [182, 568]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 12,
+    "original": "セコイ たすかった",
+    "translated": "I was a help to him.",
+    "context": "受けてしまた\n豪 富 大",
+    "model_used": "latency_optimized",
+    "billed_characters": 9,
+    "final_box": [
+      [
+        [359, 530],
+        [371, 530],
+        [359, 561],
+        [371, 561]
+      ],
+      [
+        [328, 507],
+        [335, 507],
+        [328, 555],
+        [335, 555]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 13,
+    "original": "豪 富 大",
+    "translated": "Australia, wealth, big",
+    "context": "セコイ たすかった\n田",
+    "model_used": "latency_optimized",
+    "billed_characters": 5,
+    "final_box": [
+      [
+        [580, 471],
+        [602, 471],
+        [580, 490],
+        [602, 490]
+      ],
+      [
+        [563, 470],
+        [583, 470],
+        [563, 489],
+        [583, 489]
+      ],
+      [
+        [544, 469],
+        [565, 469],
+        [544, 488],
+        [565, 488]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 14,
+    "original": "田",
+    "translated": "Tian",
+    "context": "豪 富 大\n村にレール教えて よ どうぞ春田",
+    "model_used": "latency_optimized",
+    "billed_characters": 1,
+    "final_box": [
+      [
+        [626, 529],
+        [634, 529],
+        [626, 538],
+        [634, 538]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 15,
+    "original": "村にレール教えて よ どうぞ春田",
+    "translated": "Tell the village about the rail. Go ahead, Haruta.",
+    "context": "田\nよしじゃあ 聞いてくる!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 16,
+    "final_box": [
+      [
+        [506, 511],
+        [524, 511],
+        [506, 589],
+        [524, 589]
+      ],
+      [
+        [504, 596],
+        [512, 596],
+        [504, 607],
+        [512, 607]
+      ],
+      [
+        [475, 514],
+        [488, 514],
+        [475, 589],
+        [488, 589]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 16,
+    "original": "よしじゃあ 聞いてくる!!",
+    "translated": "I'll go and ask him!",
+    "context": "村にレール教えて よ どうぞ春田\nえら 選ばれし ゆうしゃ 勇者だ...!!!",
+    "model_used": "latency_optimized",
+    "billed_characters": 13,
+    "final_box": [
+      [
+        [577, 706],
+        [593, 706],
+        [577, 801],
+        [593, 801]
+      ],
+      [
+        [543, 703],
+        [566, 703],
+        [543, 824],
+        [566, 824]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 17,
+    "original": "えら 選ばれし ゆうしゃ 勇者だ...!!!",
+    "translated": "I'm the chosen one, the brave hero...!",
+    "context": "よしじゃあ 聞いてくる!!\nー き っ さ た す あみ",
+    "model_used": "latency_optimized",
+    "billed_characters": 22,
+    "final_box": [
+      [
+        [425, 815],
+        [433, 815],
+        [425, 831],
+        [433, 831]
+      ],
+      [
+        [409, 815],
+        [425, 815],
+        [409, 880],
+        [425, 880]
+      ],
+      [
+        [401, 815],
+        [409, 815],
+        [401, 846],
+        [409, 846]
+      ],
+      [
+        [385, 815],
+        [399, 815],
+        [385, 895],
+        [399, 895]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 18,
+    "original": "ー き っ さ た す あみ",
+    "translated": "The last of the Ami...",
+    "context": "えら 選ばれし ゆうしゃ 勇者だ...!!!\n7 7 5 1",
+    "model_used": "latency_optimized",
+    "billed_characters": 14,
+    "final_box": [
+      [
+        [266, 772],
+        [301, 772],
+        [266, 820],
+        [301, 820]
+      ],
+      [
+        [240, 763],
+        [281, 763],
+        [240, 813],
+        [281, 813]
+      ],
+      [
+        [231, 759],
+        [265, 759],
+        [231, 806],
+        [265, 806]
+      ],
+      [
+        [205, 750],
+        [249, 750],
+        [205, 801],
+        [249, 801]
+      ],
+      [
+        [175, 739],
+        [220, 739],
+        [175, 790],
+        [220, 790]
+      ],
+      [
+        [128, 722],
+        [198, 722],
+        [128, 783],
+        [198, 783]
+      ],
+      [
+        [131, 774],
+        [142, 774],
+        [131, 798],
+        [142, 798]
+      ]
+    ]
+  },
+  {
+    "bubble_id": 19,
+    "original": "7 7 5 1",
+    "translated": "7 7 5 1",
+    "context": "ー き っ さ た す あみ",
+    "model_used": "latency_optimized",
+    "billed_characters": 7,
+    "final_box": [
+      [
+        [78, 978],
+        [88, 978],
+        [78, 991],
+        [88, 991]
+      ],
+      [
+        [78, 978],
+        [88, 978],
+        [78, 991],
+        [88, 991]
+      ],
+      [
+        [67, 978],
+        [78, 978],
+        [67, 991],
+        [78, 991]
+      ],
+      [
+        [58, 978],
+        [68, 978],
+        [58, 991],
+        [68, 991]
+      ]
+    ]
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "name": "manga-translation-tool",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "frontend:build": "cd Frontend && npm run build",
+    "backend": "cd Backend/Server && uvicorn main:app --host 127.0.0.1 --port 5000",
+    "start": "concurrently \"npm run backend\" \"npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0",
+    "daisyui": "^5.0.43",
+    "electron": "^27.0.0",
+    "prettier": "^3.5.3",
+    "prettier-plugin-svelte": "^3.4.0",
+    "prettier-plugin-tailwindcss": "^0.6.12"
+  }
+}
