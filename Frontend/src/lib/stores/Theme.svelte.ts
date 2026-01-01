@@ -1,6 +1,6 @@
 import { Appearance, Theme } from '$lib/enums/Theme';
 
-class themeState {
+class ThemeState {
   appearance = $state<Appearance>(Appearance.Light);
   theme = $state<Theme>(Theme.Purple);
 
@@ -15,4 +15,4 @@ class themeState {
   }
 }
 
-export default new themeState();
+export const themeState = new ThemeState();

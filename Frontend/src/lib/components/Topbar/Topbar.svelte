@@ -1,18 +1,20 @@
 <script lang="ts">
 	import { Button } from '$lib';
 	import { editorState } from '$lib';
+	import Open from './Open.svelte';
 	import { Separator } from 'bits-ui';
 	import {
 		Languages,
 		Paintbrush,
 		Type,
 		CheckCircle,
-		FolderOpen,
 		Save,
 		Undo,
 		Redo,
 		Rocket
 	} from '@lucide/svelte';
+
+
 
 	const sections = [
 		{ id: 'translation', name: 'Translation', icon: Languages },
@@ -20,13 +22,16 @@
 		{ id: 'typesetting', name: 'Typesetting', icon: Type },
 		{ id: 'quality', name: 'Quality Checking', icon: CheckCircle }
 	];
+
+
 </script>
 
 <div class="bg-white px-4 py-2">
 	<div class="flex items-center justify-between">
 		<div class="flex items-center space-x-4">
 			<div class="flex items-center space-x-2">
-				<Button variant="ghost" size="sm" icon={FolderOpen}>Open</Button>
+
+				<Open buttonName="Open" variant="ghost" size="sm" icon={Save}/>
 				<Button variant="ghost" size="sm" icon={Save}>Save</Button>
 				<Button variant="ghost" size="sm" icon={Rocket}>Export</Button>
 			</div>

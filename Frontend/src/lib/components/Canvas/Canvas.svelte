@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Upload, Plus } from '@lucide/svelte';
 	import { Button } from '$lib';
+	import { imageState } from '$lib';
+	import { Open } from '$lib';
 </script>
 
 <div class="flex flex-col gap-3 text-black">
@@ -14,7 +16,7 @@
 		Upload a manga page to start translating
 	</p>
 	<div class="flex flex-row items-center justify-center gap-3">
-		<Button icon={Upload} variant={'default'}>Upload Image</Button>
+		<Open buttonName={"Upload Image"} variant={"default"} icon={Upload}/>
 		<Button icon={Plus} variant={'outline'}>Create New Project</Button>
 	</div>
 </div>

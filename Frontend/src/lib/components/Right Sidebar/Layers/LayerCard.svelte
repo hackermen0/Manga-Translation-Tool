@@ -53,14 +53,6 @@
         layerStateManager.deleteLayer(id)
     }
 
-    // const handleLayerUp = (id: string) => {
-    //     layerStateManager.bringToFront(id)
-    // }
-
-    // const handleLayerDown = (id: string) => {
-    //     layerStateManager.sendToBack(id)
-    // }
-
     let { name, layerID, edit = $bindable(false) }: Props = $props();
 
     let layer = $derived(layerStateManager.getLayerState(layerID));

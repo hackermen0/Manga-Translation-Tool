@@ -1,4 +1,3 @@
-
 interface GlossaryState {
     id: string;
     originalText: string;
