@@ -9,6 +9,9 @@ interface ImageItem {
 
 
 class ImageState {
+
+    imageIndex = $state(0);
+
     images = $state<Record<string, ImageItem>>({})
 
     layerList = $derived(Object.values(this.images));
@@ -33,6 +36,18 @@ class ImageState {
         this.initializeImage(id, initialState);
         return id;
 
+    }
+
+    incrementIndex(){
+        if(this.layerList.length > 0 && this.imageIndex < this.layerList.length - 1){
+            this.imageIndex++;
+        }
+    }
+
+    decrementIndex(){
+        if(this.layerList.length > 0 && this.imageIndex > 0){
+            this.imageIndex--;
+        }
     }
 
 
