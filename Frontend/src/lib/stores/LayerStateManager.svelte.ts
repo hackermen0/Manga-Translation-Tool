@@ -5,6 +5,7 @@ interface LayerState {
 	locked: boolean;
 	opacity: number;
     zIndex: number;
+    imageID?: string;
 }
 
 class LayerStateManager {
@@ -76,6 +77,12 @@ class LayerStateManager {
         if (this.layers[id]) {
             this.layers[id].name = name;
             console.log(id, name)
+        }
+    }
+
+    setLayerImage(id: string, imageID: string) {
+        if (this.layers[id]) {
+            this.layers[id].imageID = imageID;
         }
     }
 

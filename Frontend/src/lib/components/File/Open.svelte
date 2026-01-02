@@ -16,8 +16,7 @@
 
 
     import { Button } from '$lib';
-    import { FolderOpen } from '@lucide/svelte';
-    import { imageState } from '$lib';
+    import { imageState, layerStateManager } from '$lib';
 
 
 	let fileInput: HTMLElement;
@@ -30,13 +29,18 @@
         if(file){
             const objectURL = URL.createObjectURL(file);
             
-            imageState.addImage({
+            const newImageID = imageState.addImage({
                 name: file.name,
                 type: file.type,
                 size: file.size,
                 lastModified: file.lastModified,
                 imageURL: objectURL
             });
+
+            const originalLayer = layerStateManager.layerList.find(l => l.name === 'Original Image');
+            if (originalLayer) {
+                layerStateManager.setLayerImage(originalLayer.id, newImageID);
+            }           
 
             target.value = ""
         }
@@ -53,6 +57,6 @@
     onchange="{handleFileSelection}"
 />
 
-<Button variant={variant} size="sm" icon={FolderOpen} onclick={() => fileInput.click()}>
+<Button variant={variant} size={size} icon={icon} onclick={() => fileInput.click()}>
     {buttonName}
 </Button>
