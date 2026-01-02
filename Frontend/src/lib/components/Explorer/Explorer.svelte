@@ -7,7 +7,7 @@
 	import Folder from './Folder.svelte';
 </script>
 
-<Accordion.Root type="single" class="my-3 p-2 font-mono">
+<Accordion.Root type="single" class="my-3 p-2 font-mono z-20">
 	<Accordion.Item>
 		<Accordion.Header>
 			<Accordion.Trigger
