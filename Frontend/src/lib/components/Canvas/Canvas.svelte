@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Upload, Plus, ChevronRight, ChevronLeft } from '@lucide/svelte';
-    import Display from './ImageSelector/Display.svelte';
     import { Button } from '$lib';
     import { imageState, zoomState } from '$lib';
     import { Open } from '$lib';
@@ -71,13 +70,6 @@
                 style="transform: scale({zoomState.zoomLevel / 100});"
             />
         </div>
-
-        <!-- <div class="flex-none p-4 flex flex-row items-center justify-center gap-2 z-10">
-            <Button icon={ChevronLeft} onclick={() => imageState.decrementIndex()} disabled={imageIndex == 0}></Button>
-            <Display/>
-            <Button icon={ChevronRight} onclick={() => imageState.incrementIndex()} disabled={imageIndex == imagesLength - 1}></Button>
-        </div> -->
-
     {:else}
         <div class="h-full flex flex-col items-center justify-center gap-3 text-black">
             <div class="flex aspect-square w-32 items-center justify-center rounded-lg border-3 border-dashed border-gray-400 text-gray-400">
