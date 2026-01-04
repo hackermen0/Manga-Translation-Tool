@@ -141,7 +141,7 @@
                         bind:value={opacity} 
                         oninput={handleOpacity}
                         onclick={(e) => e.stopPropagation()}
-                        class="w-8 text-right bg-transparent text-xs focus:outline-none"
+                        class="w-8 text-right bg-transparent text-[0.6rem] focus:outline-none"
                     />
                     <span class="text-xs text-gray-400">%</span>
                 </div>

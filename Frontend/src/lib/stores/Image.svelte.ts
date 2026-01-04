@@ -5,6 +5,8 @@ interface ImageItem {
     size: number;
     lastModified: number;
     imageURL: string;
+    width: number;
+    height: number;
 }
 
 
@@ -25,6 +27,8 @@ class ImageState {
                 size: initialState?.size || 0,
                 lastModified: initialState?.lastModified || Date.now(),
                 imageURL: initialState?.imageURL || "undefined",
+                width: initialState?.width || 0,
+                height: initialState?.height || 0,
                 ...initialState
 
             };

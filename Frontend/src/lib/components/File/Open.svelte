@@ -22,35 +22,39 @@
 	let fileInput: HTMLElement;
     let {buttonName, variant, size, icon}: Props = $props();
 
-	let handleFileSelection = (event: Event) => {
+    let handleFileSelection = (event: Event) => {
 		const target = event.target as HTMLInputElement;
         const file = target.files?.[0];
 
         if(file){
             const objectURL = URL.createObjectURL(file);
             
-            const newImageID = imageState.addImage({
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                lastModified: file.lastModified,
-                imageURL: objectURL
-            });
-
-            const originalLayer = layerStateManager.layerList.find(l => l.name === 'Original Image');
-            if (originalLayer) {
-                console.log(originalLayer.imageID)
-                if(!originalLayer.imageID){
-                    layerStateManager.setLayerImage(originalLayer.id, newImageID);
-                    layerStateManager.selectLayer(originalLayer.id)
-                    return;
-                }
-            } 
+            const img = new Image();
             
-            const newImageLayerID = layerStateManager.addLayer(file.name, "image");
-            layerStateManager.setLayerImage(newImageLayerID, newImageID);
-            layerStateManager.selectLayer(newImageLayerID);
+            img.onload = () => {
+                const newImageID = imageState.addImage({
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    lastModified: file.lastModified,
+                    imageURL: objectURL,
+                    width: img.naturalWidth,
+                    height: img.naturalHeight
+                });
 
+                const originalLayer = layerStateManager.layerList.find(l => l.name === 'Original Image');
+                
+                if (originalLayer && !originalLayer.imageID) {
+                    layerStateManager.setLayerImage(originalLayer.id, newImageID);
+                    layerStateManager.selectLayer(originalLayer.id);
+                } else {
+                    const newImageLayerID = layerStateManager.addLayer(file.name, "image");
+                    layerStateManager.setLayerImage(newImageLayerID, newImageID);
+                    layerStateManager.selectLayer(newImageLayerID);
+                }
+            };
+
+            img.src = objectURL;
             target.value = "";
         }
 	}

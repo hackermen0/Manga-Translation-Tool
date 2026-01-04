@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Button } from '$lib';
+	import { Button, Open } from '$lib';
 	import { editorState } from '$lib';
-	import Open from './Open.svelte';
 	import { Separator } from 'bits-ui';
 	import {
 		Languages,
