@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { Button } from '$lib';
 	import { editorState } from '$lib';
-	import Open from '../File/Open.svelte';
+	import Open from './Open.svelte';
 	import { Separator } from 'bits-ui';
 	import {
 		Languages,
 		Paintbrush,
 		Type,
 		CheckCircle,
-		FolderOpen,
 		Save,
 		Undo,
 		Redo,
@@ -32,7 +31,7 @@
 		<div class="flex items-center space-x-4">
 			<div class="flex items-center space-x-2">
 
-				<Open buttonName="Open" variant="ghost" size="sm" icon={FolderOpen}/>
+				<Open buttonName="Open" variant="ghost" size="sm" icon={Save}/>
 				<Button variant="ghost" size="sm" icon={Save}>Save</Button>
 				<Button variant="ghost" size="sm" icon={Rocket}>Export</Button>
 			</div>

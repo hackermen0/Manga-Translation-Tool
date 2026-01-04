@@ -4,7 +4,7 @@ import Explorer from './components/Explorer/Explorer.svelte';
 import Magnifier from './components/Bottombar/Magnifier/Magnifier.svelte';
 import Button from './components/ui/Button.svelte';
 import Topbar from './components/Topbar/Topbar.svelte';
-import Open from './components/File/Open.svelte';
+import Open from './components/Topbar/Open.svelte';
 import Bottombar from './components/Bottombar/Bottombar.svelte';
 import Canvas from './components/Canvas/Canvas.svelte';
 import LayerCard from './components/Right Sidebar/Layers/LayerCard.svelte';
