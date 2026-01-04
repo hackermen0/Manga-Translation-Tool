@@ -39,10 +39,19 @@
 
             const originalLayer = layerStateManager.layerList.find(l => l.name === 'Original Image');
             if (originalLayer) {
-                layerStateManager.setLayerImage(originalLayer.id, newImageID);
-            }           
+                console.log(originalLayer.imageID)
+                if(!originalLayer.imageID){
+                    layerStateManager.setLayerImage(originalLayer.id, newImageID);
+                    layerStateManager.selectLayer(originalLayer.id)
+                    return;
+                }
+            } 
+            
+            const newImageLayerID = layerStateManager.addLayer(file.name, "image");
+            layerStateManager.setLayerImage(newImageLayerID, newImageID);
+            layerStateManager.selectLayer(newImageLayerID);
 
-            target.value = ""
+            target.value = "";
         }
 	}
 

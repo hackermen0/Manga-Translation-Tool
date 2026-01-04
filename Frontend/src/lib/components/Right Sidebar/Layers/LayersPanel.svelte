@@ -1,5 +1,6 @@
 <script lang="ts" module>
-
+    import { PointerSensor, type SensorDescriptor, type PointerSensorOptions, type DropAnimation, defaultDropAnimationSideEffects } from '@dnd-kit-svelte/core'
+    
     const sensors: SensorDescriptor<PointerSensorOptions>[] = [
         {
             sensor: PointerSensor,
@@ -13,7 +14,7 @@
         }
     ];
 
-	const dropAnimation: DropAnimation = {
+    const dropAnimation: DropAnimation = {
 		sideEffects: defaultDropAnimationSideEffects({
 			styles: {
 				active: {
@@ -22,14 +23,11 @@
 			}
 		})
 	}
-
-
 </script>
 
-
 <script lang="ts">
-	import { DndContext, DragOverlay, PointerSensor, defaultDropAnimationSideEffects } from '@dnd-kit-svelte/core';
-    import type {  SensorDescriptor, PointerSensorOptions, DragStartEvent, DragEndEvent, DropAnimation } from '@dnd-kit-svelte/core'
+	import { DndContext, DragOverlay } from '@dnd-kit-svelte/core';
+    import type { DragStartEvent, DragEndEvent } from '@dnd-kit-svelte/core';
 	import { SortableContext, arrayMove } from '@dnd-kit-svelte/sortable';
 	import LayerCard from './LayerCard.svelte';
 	import { layerStateManager } from '$lib';
@@ -37,81 +35,87 @@
 	import { onMount } from 'svelte';
 
 	onMount(() => {
-		const defaultNames = ['Original Image', 'Text Layer', 'Redrawing Layer', 'Effects'];
-
 		if (layerStateManager.layerList.length === 0) {
-			for (const name of defaultNames) {
-				layerStateManager.addLayer(name);
-			}
+			layerStateManager.addLayer('Original Image', 'image');
+            layerStateManager.addLayer('Text Layer', 'drawing');
+            layerStateManager.addLayer('Redrawing Layer', 'drawing');
+            layerStateManager.addLayer('Effects', 'drawing');
 		}
 	});
 
-	let layers = $derived(layerStateManager.layerList);
+    let layers = $derived(layerStateManager.layerList);
 	let activeId = $state<string | null>(null);
 	let edit = $state(false);
 
-
 	function addNewLayer() {
 		const name = `Layer ${layers.length + 1}`;
-		layerStateManager.addLayer(name);
+		layerStateManager.addLayer(name, 'drawing');
 	}
 
 	function toggleEdit() {
 		edit = !edit;
-	}
+    }
 
     function handleDragStart(e: DragStartEvent) {
         activeId = e.active.id as string;
+        layerStateManager.selectLayer(activeId);
     }
 
     function handleDragEnd(e: DragEndEvent) {
         const { active, over } = e;
         if (!over || active.id === over.id) return;
+        
+        const currentIds = layers.map(l => l.id);
+        const oldIndex = currentIds.indexOf(active.id as string);
+        const newIndex = currentIds.indexOf(over.id as string);
 
-        const oldIndex = layers.findIndex((l) => l.id === active.id);
-        const newIndex = layers.findIndex((l) => l.id === over.id);
-
-        layers = arrayMove(layers, oldIndex, newIndex);
-        layerStateManager.reorderLayers(layers.map((l) => l.id));
+        const newOrder = arrayMove(currentIds, oldIndex, newIndex);
+        layerStateManager.reorderLayers(newOrder);
 
         activeId = null;
     }
 </script>
-<div>
-
-</div>
 
 <DndContext {sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-	<div class="h-auto p-4 border-2 border-primary-border flex flex-col gap-5 rounded-lg ring-1 ring-accent">
-		<div class="flex flex-row justify-between">
+	<div class="h-auto p-4 border-2 border-primary-border flex flex-col gap-5 rounded-lg ring-1 ring-accent bg-white">
+		<div class="flex flex-row justify-between items-center">
 			<div class="flex flex-row gap-3 ml-1">
 				<Layers />
 				<p class="font-semibold text-black">Layers</p>
 			</div>
 			<div>
-				<button onclick={toggleEdit} class={`mt-0.5 mr-2 rounded-full ${edit ? "ring-2 ring-offset-4 ring-accent" : "ring-0"}`}>
-					<Pencil class="w-4 h-4 text-gray-500 hover:text-black"/>
+				<button onclick={toggleEdit} class={`rounded-full p-1 transition-all ${edit ? "bg-accent/20 text-accent" : "text-gray-500 hover:text-black"}`}>
+					<Pencil class="w-4 h-4"/>
 				</button>
 			</div>
 		</div>
 		<SortableContext items={layers}>
 			<div class="flex flex-col gap-2">
 				{#each layers as layer (layer.id)}
-					<LayerCard name={layer.name} layerID={layer.id} bind:edit={edit} />
+					<LayerCard 
+                        name={layer.name} 
+                        layerID={layer.id} 
+                        type={layer.type}
+                        isSelected={layerStateManager.selectedLayerId === layer.id}
+                        bind:edit={edit} 
+                    />
 				{/each}
 			</div>
 		</SortableContext>
-		<button onclick={addNewLayer}>
-			<div class="w-full border-1 border-primary-border border-dashed flex flex-row justify-center p-3 rounded-lg text-sm text-gray-500 hover:bg-accent/70">
+		<button onclick={addNewLayer} class="hover:scale-[1.01] transition-transform active:scale-[0.99]">
+			<div class="w-full border-1 border-primary-border border-dashed flex flex-row justify-center p-3 rounded-lg text-sm text-gray-500 hover:bg-accent/5 hover:text-accent hover:border-accent">
 				<Plus />
 			</div>
 		</button>
 	</div>
 	<DragOverlay {dropAnimation}>
 		{#if activeId}
+            {@const activeLayer = layers.find(l => l.id === activeId)}
 			<LayerCard
-                name={layers.find(l => l.id === activeId)?.name ?? 'Unnamed'}
-                layerID={activeId ?? ''}
+                name={activeLayer?.name ?? 'Unnamed'}
+                layerID={activeId}
+                type={activeLayer?.type ?? 'drawing'}
+                isSelected={true}
                 edit={edit}
             />
 		{/if}

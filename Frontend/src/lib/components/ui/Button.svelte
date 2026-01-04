@@ -8,7 +8,7 @@
 		variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 		size?: 'default' | 'sm' | 'lg' | 'icon';
 		class?: string;
-		onclick?: () => void;
+		onclick?: (e: MouseEvent) => void;
 		children?: import('svelte').Snippet;
 		icon?: Component<IconProps, {}, ''>;
 		disabled?: boolean;
