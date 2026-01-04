@@ -3,7 +3,7 @@
     import { Button } from '$lib';
     import { imageState, zoomState, layerStateManager } from '$lib';
     import { Open } from '$lib';
-    import { onMount } from 'svelte';
+    import { tick } from 'svelte';
 
     let sortedLayers = $derived([...layerStateManager.layerList].sort((a, b) => a.zIndex - b.zIndex));
     let hasImages = $derived(sortedLayers.some(l => l.imageID && imageState.images[l.imageID]));
@@ -28,13 +28,15 @@
         return { width: maxWidth, height: maxHeight };
     });
 
+
     let baseScale = $derived.by(() => {
         if (canvasDimensions.width === 0 || canvasDimensions.height === 0 || containerWidth === 0 || containerHeight === 0) return 1;
         
         const widthRatio = (containerWidth - 40) / canvasDimensions.width; 
         const heightRatio = (containerHeight - 40) / canvasDimensions.height;
         
-        return Math.min(widthRatio, heightRatio);
+        const fitScale = Math.min(widthRatio, heightRatio);
+        return Math.min(fitScale, 1);
     });
 
     let displayWidth = $derived(canvasDimensions.width * baseScale * (zoomState.zoomLevel / 100));
@@ -57,16 +59,44 @@
         isPanning = false;
     }
 
-	function handleMouseWheel(e: WheelEvent) {
+	async function handleMouseWheel(e: WheelEvent) {
 		if(!scrollContainer) return;
         if (e.ctrlKey) e.preventDefault();
         
-		const zoomStep = 5
+        
+        const canvasDiv = scrollContainer.firstElementChild as HTMLElement;
+        let anchorX = 0.5; 
+        let anchorY = 0.5;
+        
+        if (canvasDiv) {
+            const rect = canvasDiv.getBoundingClientRect();
+            anchorX = (e.clientX - rect.left) / rect.width;
+            anchorY = (e.clientY - rect.top) / rect.height;
+        }
+
+		const zoomStep = 5;
 		if(e.deltaY < 0){
-			zoomState.zoomIn(zoomStep)
+			zoomState.zoomIn(zoomStep);
 		} else {
-			zoomState.zoomOut(zoomStep)
+			zoomState.zoomOut(zoomStep);
 		}
+        
+
+        await tick();
+
+        if (scrollContainer.scrollWidth > scrollContainer.clientWidth || scrollContainer.scrollHeight > scrollContainer.clientHeight) {
+             const newRect = canvasDiv.getBoundingClientRect();
+             const containerRect = scrollContainer.getBoundingClientRect();
+             
+             const mouseXInContainer = e.clientX - containerRect.left;
+             const mouseYInContainer = e.clientY - containerRect.top;
+             
+             const newPointX = anchorX * newRect.width;
+             const newPointY = anchorY * newRect.height;
+             
+             scrollContainer.scrollLeft = newPointX - mouseXInContainer;
+             scrollContainer.scrollTop = newPointY - mouseYInContainer;
+        }
 	}
 
     function handleContextMenu(e: MouseEvent) {
@@ -90,7 +120,7 @@
 			onwheel={handleMouseWheel}
         >
             <div 
-                class="m-auto relative bg-transparent transition-all duration-75 ease-out flex-shrink-0"
+                class="m-auto relative bg-white shadow-lg transition-all duration-75 ease-out flex-shrink-0"
                 style="width: {displayWidth}px; height: {displayHeight}px;"
             >
                 {#each sortedLayers as layer (layer.id)}
