@@ -162,6 +162,18 @@ cd Frontend
 npm run dev
 ```
 
+### Inpainting Pipeline (Speech Bubble → Mask → Cleaned Page)
+
+```bash
+python Backend/inpainting/pipeline.py --image path\\to\\page.jpg --model Backend\\models\\bubble_segmenter_best.pt --output output\\page_cleaned.png --save-debug
+```
+
+To use Stable Diffusion for complex bubbles, pass:
+
+```bash
+python Backend/inpainting/pipeline.py --image path\\to\\page.jpg --model Backend\\models\\bubble_segmenter_best.pt --generative-mode stable_diffusion --sd-model-id <model-id-or-path>
+```
+
 ---
 
 ## Project Structure
