@@ -5,9 +5,40 @@ from .processors.generative import GenerativeProcessor
 
 
 class HybridMangaCleaner:
-    def __init__(self):
-        self.programmatic_engine = ProgrammaticProcessor(variance_threshold=8.0)
-        self.generative_engine = GenerativeProcessor()
+    def __init__(
+        self,
+        variance_threshold: float = 8.0,
+        programmatic_fill_color: tuple[int, int, int] | None = (255, 255, 255),
+        generative_model_id_or_path: str | None = None,
+        generative_device: str | None = None,
+        generative_prompt: str | None = None,
+        generative_negative_prompt: str | None = None,
+        generative_guidance_scale: float = 7.5,
+        generative_steps: int = 25,
+        generative_seed: int | None = None,
+        generative_padding: int = 16,
+        generative_engine: GenerativeProcessor | None = None,
+    ):
+        self.programmatic_engine = ProgrammaticProcessor(
+            variance_threshold=variance_threshold,
+            fill_color=programmatic_fill_color,
+        )
+        if generative_engine is None:
+            if generative_model_id_or_path is None:
+                raise ValueError(
+                    "generative_model_id_or_path is required for Stable Diffusion inpainting."
+                )
+            generative_engine = GenerativeProcessor(
+                model_id_or_path=generative_model_id_or_path,
+                device=generative_device,
+                prompt=generative_prompt,
+                negative_prompt=generative_negative_prompt,
+                guidance_scale=generative_guidance_scale,
+                num_inference_steps=generative_steps,
+                seed=generative_seed,
+                padding=generative_padding,
+            )
+        self.generative_engine = generative_engine
 
     def generate_clean_page(self, image_path: str, bubble_metadata: list):
         """

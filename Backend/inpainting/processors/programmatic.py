@@ -43,4 +43,4 @@ class ProgrammaticProcessor:
             cleaned_patch[crop_mask > 0] = median_color
             return cleaned_patch
 
-        return None  # Too structurally complex, needs generative AI
+        return None  # Too structurally complex, needs generative A
