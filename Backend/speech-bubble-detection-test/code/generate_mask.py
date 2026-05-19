@@ -124,8 +124,8 @@ def save_masks(
 
 
 if __name__ == "__main__":
-    MODEL_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\New Speech Bubble Detection\Models\best.pt"  # path to your trained model
-    IMAGE_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\Translation-Pipeline\raw\112.jpg"  # any manga page
+    MODEL_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\models\bubble_segmenter_best.pt"  # path to your trained model
+    IMAGE_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\translation-pipeline\raw\103.jpg"  # any manga page
 
     combined, individuals, metadata = save_masks(
         image_path=IMAGE_PATH, model_path=MODEL_PATH, output_dir="output", conf=0.2
