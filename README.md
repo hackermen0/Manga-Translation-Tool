@@ -162,7 +162,13 @@ cd Frontend
 npm run dev
 ```
 
----
+### Speech Bubble Inpainting Pipeline (Detection → Mask → Inpainting)
+
+```bash
+python Backend/inpainting/pipeline.py --image <PATH_TO_PAGE> --inpaint-model <MODEL_ID_OR_PATH>
+```
+
+--- 
 
 ## Project Structure
 
