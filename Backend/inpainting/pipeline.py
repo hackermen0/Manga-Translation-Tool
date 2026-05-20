@@ -123,7 +123,7 @@ class SpeechBubbleInpaintingPipeline:
         detector_model_path: str,
         inpaint_model_id_or_path: str,
         conf: float = 0.2,
-        erosion: int = 2,
+        border_erosion: int = 2,
         imgsz: int = 1024,
         variance_threshold: float = 8.0,
         programmatic_fill_color: tuple[int, int, int] | None = (255, 255, 255),
@@ -159,7 +159,7 @@ class SpeechBubbleInpaintingPipeline:
         self.cleaner = cleaner
         self.conf = conf
         self.imgsz = imgsz
-        self.erosion = erosion
+        self.border_erosion = border_erosion
 
     def run(
         self,
@@ -172,7 +172,7 @@ class SpeechBubbleInpaintingPipeline:
             image_path=image_path,
             conf=self.conf,
             imgsz=self.imgsz,
-            erosion=self.erosion,
+            border_erosion=self.border_erosion,
         )
 
         stem = Path(image_path).stem
@@ -234,7 +234,7 @@ def _build_arg_parser():
     )
     parser.add_argument("--output-dir", default="output")
     parser.add_argument("--conf", type=float, default=0.2)
-    parser.add_argument("--erosion", type=int, default=2)
+    parser.add_argument("--border-erosion", type=int, default=2)
     parser.add_argument("--imgsz", type=int, default=1024)
     parser.add_argument("--device", default=None)
     parser.add_argument("--prompt", default=None)
@@ -254,7 +254,7 @@ if __name__ == "__main__":
         detector_model_path=args.detector_model,
         inpaint_model_id_or_path=args.inpaint_model,
         conf=args.conf,
-        erosion=args.erosion,
+        border_erosion=args.border_erosion,
         imgsz=args.imgsz,
         variance_threshold=args.variance_threshold,
         generative_device=args.device,

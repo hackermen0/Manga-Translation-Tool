@@ -17,7 +17,11 @@ class SpeechBubbleDetector:
         self.model = YOLO(model_path)
 
     def process_page(
-        self, image_path: str, conf: float = 0.2, imgsz: int = 1024, erosion: int = 2
+        self,
+        image_path: str,
+        conf: float = 0.2,
+        imgsz: int = 1024,
+        border_erosion: int = 2,
     ):
         """
         Runs bubble segmentation on a manga page and extracts structured mask tensors.
@@ -60,12 +64,14 @@ class SpeechBubbleDetector:
                 )
 
                 # Binarize floating point mask values into sharp pixel selections
-                binary_mask = (mask_resized > 0.5).astype(np.uint8) * 255
+                binary_mask = (mask_resized > 0.1).astype(np.uint8) * 255
 
                 # Apply structural closure to fuse minor holes inside typography lines
                 kernel = np.ones((5, 5), np.uint8)
                 binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel)
-                binary_mask = cv2.erode(binary_mask, kernel, iterations=erosion)
+
+                binary_mask = cv2.dilate(binary_mask, kernel, iterations=1)
+                binary_mask = cv2.erode(binary_mask, kernel, iterations=border_erosion)
 
                 # Append clean frame array boundaries
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
@@ -121,32 +127,32 @@ class SpeechBubbleDetector:
 # ==============================================================================
 # Local Sandbox Execution Loop (Equivalent to script run logic)
 # ==============================================================================
-if __name__ == "__main__":
-    from pathlib import Path
+# if __name__ == "__main__":
+#     from pathlib import Path
 
-    MODEL_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\models\bubble_segmenter_best.pt"
-    IMAGE_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\translation-pipeline\raw\103.jpg"
-    OUTPUT_DIR = Path("output")
-    OUTPUT_DIR.mkdir(exist_ok=True)
+#     MODEL_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\models\bubble_segmenter_best.pt"
+#     IMAGE_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\translation-pipeline\raw\103.jpg"
+#     OUTPUT_DIR = Path("output")
+#     OUTPUT_DIR.mkdir(exist_ok=True)
 
-    # Initialize the class system once
-    detector = SpeechBubbleDetector(MODEL_PATH)
+#     # Initialize the class system once
+#     detector = SpeechBubbleDetector(MODEL_PATH)
 
-    # Process page logic using the verified 0.2 confidence baseline
-    payload = detector.process_page(IMAGE_PATH, conf=0.2)
+#     # Process page logic using the verified 0.2 confidence baseline
+#     payload = detector.process_page(IMAGE_PATH, conf=0.2)
 
-    # Extract structural components
-    stem = Path(IMAGE_PATH).stem
-    cv2.imwrite(str(OUTPUT_DIR / f"{stem}_combined_mask.png"), payload["combined_mask"])
-    cv2.imwrite(str(OUTPUT_DIR / f"{stem}_annotated.png"), payload["annotated_img"])
+#     # Extract structural components
+#     stem = Path(IMAGE_PATH).stem
+#     cv2.imwrite(str(OUTPUT_DIR / f"{stem}_combined_mask.png"), payload["combined_mask"])
+#     cv2.imwrite(str(OUTPUT_DIR / f"{stem}_annotated.png"), payload["annotated_img"])
 
-    print(f"Processed {len(payload['bubbles'])} bubble segments successfully.")
-    bubble_payload = [
-        {key: val for key, val in bubble.items() if key != "mask"}
-        for bubble in payload["bubbles"]
-    ]
+#     print(f"Processed {len(payload['bubbles'])} bubble segments successfully.")
+#     bubble_payload = [
+#         {key: val for key, val in bubble.items() if key != "mask"}
+#         for bubble in payload["bubbles"]
+#     ]
 
-    print(bubble_payload)
+#     print(bubble_payload)
 
-    with open(rf"{OUTPUT_DIR}/bb_box_data.json", "w") as f:
-        json.dump(bubble_payload, f)
+#     with open(rf"{OUTPUT_DIR}/bb_box_data.json", "w") as f:
+#         json.dump(bubble_payload, f)
