@@ -16,7 +16,7 @@ class GenerativeProcessor:
         padding: int = 16,
     ):
         """
-        Initializes the Stable Diffusion inpainting pipeline.
+        Initializes the Stable Diffusion inpainting pipeline with DirectML support.
         """
         if not model_id_or_path:
             raise ValueError(
@@ -27,14 +27,33 @@ class GenerativeProcessor:
         from diffusers import StableDiffusionInpaintPipeline
 
         self.torch = torch
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.torch_dtype = torch.float16 if self.device == "cuda" else torch.float32
+
+        # Parse and prioritize the DirectML device string mapping
+        requested_device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+
+        if requested_device == "dml":
+            import torch_directml
+
+            self.device = torch_directml.device()
+            self.is_dml = True
+            # DirectML requires float32 precision for model execution stability
+            self.torch_dtype = torch.float32
+            print(
+                "Generative Inpainter running on AMD Hardware via DirectML Acceleration."
+            )
+        else:
+            self.device = requested_device
+            self.is_dml = False
+            self.torch_dtype = torch.float16 if self.device == "cuda" else torch.float32
+            print(f"Generative Inpainter running on device backend: {self.device}")
+
         self.pipe = StableDiffusionInpaintPipeline.from_pretrained(
             model_id_or_path, torch_dtype=self.torch_dtype
         )
         self.pipe = self.pipe.to(self.device)
         self.pipe.set_progress_bar_config(disable=True)
-        if self.device == "cpu":
+
+        if requested_device == "cpu":
             self.pipe.enable_attention_slicing()
 
         self.prompt = (
@@ -102,7 +121,10 @@ class GenerativeProcessor:
 
         generator = None
         if self.seed is not None:
-            generator = self.torch.Generator(device=self.device).manual_seed(self.seed)
+            # DirectML cannot declare random generation tensors directly inside its tracking spaces.
+            # We explicitly target the CPU to compute seeds, which remains fully compatible with DML.
+            gen_device = "cpu" if self.is_dml else self.device
+            generator = self.torch.Generator(device=gen_device).manual_seed(self.seed)
 
         with self.torch.no_grad():
             result = self.pipe(

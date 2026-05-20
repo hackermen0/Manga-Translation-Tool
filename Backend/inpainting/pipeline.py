@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import argparse
 import importlib.util
 import json
@@ -8,7 +7,8 @@ from typing import Any
 
 import cv2
 
-from cleaner import HybridMangaCleaner
+
+from .cleaner import HybridMangaCleaner
 
 _DETECTOR_CLASS: type | None = None
 
@@ -123,6 +123,7 @@ class SpeechBubbleInpaintingPipeline:
         detector_model_path: str,
         inpaint_model_id_or_path: str,
         conf: float = 0.2,
+        erosion: int = 2,
         imgsz: int = 1024,
         variance_threshold: float = 8.0,
         programmatic_fill_color: tuple[int, int, int] | None = (255, 255, 255),
@@ -158,6 +159,7 @@ class SpeechBubbleInpaintingPipeline:
         self.cleaner = cleaner
         self.conf = conf
         self.imgsz = imgsz
+        self.erosion = erosion
 
     def run(
         self,
@@ -167,7 +169,10 @@ class SpeechBubbleInpaintingPipeline:
         save_cleaned: bool = True,
     ):
         payload = self.detector.process_page(
-            image_path=image_path, conf=self.conf, imgsz=self.imgsz
+            image_path=image_path,
+            conf=self.conf,
+            imgsz=self.imgsz,
+            erosion=self.erosion,
         )
 
         stem = Path(image_path).stem
@@ -229,6 +234,7 @@ def _build_arg_parser():
     )
     parser.add_argument("--output-dir", default="output")
     parser.add_argument("--conf", type=float, default=0.2)
+    parser.add_argument("--erosion", type=int, default=2)
     parser.add_argument("--imgsz", type=int, default=1024)
     parser.add_argument("--device", default=None)
     parser.add_argument("--prompt", default=None)
@@ -248,6 +254,7 @@ if __name__ == "__main__":
         detector_model_path=args.detector_model,
         inpaint_model_id_or_path=args.inpaint_model,
         conf=args.conf,
+        erosion=args.erosion,
         imgsz=args.imgsz,
         variance_threshold=args.variance_threshold,
         generative_device=args.device,

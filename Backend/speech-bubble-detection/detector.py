@@ -16,7 +16,9 @@ class SpeechBubbleDetector:
         print(f"Initializing Production Speech Bubble Detector from {model_path}...")
         self.model = YOLO(model_path)
 
-    def process_page(self, image_path: str, conf: float = 0.2, imgsz: int = 1024):
+    def process_page(
+        self, image_path: str, conf: float = 0.2, imgsz: int = 1024, erosion: int = 2
+    ):
         """
         Runs bubble segmentation on a manga page and extracts structured mask tensors.
 
@@ -63,6 +65,7 @@ class SpeechBubbleDetector:
                 # Apply structural closure to fuse minor holes inside typography lines
                 kernel = np.ones((5, 5), np.uint8)
                 binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel)
+                binary_mask = cv2.erode(binary_mask, kernel, iterations=erosion)
 
                 # Append clean frame array boundaries
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)

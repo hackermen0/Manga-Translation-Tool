@@ -1,3 +1,4 @@
+# cleaner.py
 import cv2
 import numpy as np
 from .processors.programmatic import ProgrammaticProcessor
@@ -23,12 +24,15 @@ class HybridMangaCleaner:
             variance_threshold=variance_threshold,
             fill_color=programmatic_fill_color,
         )
-        if generative_engine is None:
-            if generative_model_id_or_path is None:
-                raise ValueError(
-                    "generative_model_id_or_path is required for Stable Diffusion inpainting."
-                )
-            generative_engine = GenerativeProcessor(
+
+        # SD is now fully optional — None means white fill handles everything
+        if generative_engine is not None:
+            self.generative_engine = generative_engine
+        elif (
+            generative_model_id_or_path is not None
+            and generative_model_id_or_path.lower() != "none"
+        ):
+            self.generative_engine = GenerativeProcessor(
                 model_id_or_path=generative_model_id_or_path,
                 device=generative_device,
                 prompt=generative_prompt,
@@ -38,29 +42,22 @@ class HybridMangaCleaner:
                 seed=generative_seed,
                 padding=generative_padding,
             )
-        self.generative_engine = generative_engine
+        else:
+            self.generative_engine = None
 
     def generate_clean_page(self, image_path: str, bubble_metadata: list):
-        """
-        Orchestrates hybrid text erasure across the entire page layout.
-
-        Args:
-            image_path: Absolute string path to the target raw page image.
-            bubble_metadata: The 'bubbles' array list returned from your YOLO detector.
-        """
         master_canvas = cv2.imread(image_path)
         if master_canvas is None:
             raise FileNotFoundError(f"Could not load image canvas at: {image_path}")
 
-        stats = {"programmatic": 0, "generative": 0}
+        stats = {"programmatic": 0, "generative": 0, "fallback_fill": 0}
 
-        # Step through every detected bubble object dynamically
         for bubble in bubble_metadata:
             bbox = bubble["bbox"]
             mask = bubble["mask"]
             x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
 
-            # 1. Attempt lightning-fast programmatic fill first
+            # Always try programmatic first
             clean_patch = self.programmatic_engine.clean_solid_bubble(
                 master_canvas, mask, bbox
             )
@@ -68,15 +65,24 @@ class HybridMangaCleaner:
             if clean_patch is not None:
                 master_canvas[y1:y2, x1:x2] = clean_patch
                 stats["programmatic"] += 1
-            else:
-                # 2. Hard case hit! Route the crop to the generative AI model
+
+            elif self.generative_engine is not None:
+                # SD inpainting only if model is loaded
                 clean_patch = self.generative_engine.clean_complex_bubble(
                     master_canvas, mask, bbox
                 )
                 master_canvas[y1:y2, x1:x2] = clean_patch
                 stats["generative"] += 1
 
+            else:
+                # Hard fallback — white fill the masked region directly
+                master_canvas[mask > 0] = (255, 255, 255)
+                stats["fallback_fill"] += 1
+
         print(
-            f"Text erasure sequence completed. (Programmatic: {stats['programmatic']} | Generative: {stats['generative']})"
+            f"Erasure complete — "
+            f"Programmatic: {stats['programmatic']} | "
+            f"Generative: {stats['generative']} | "
+            f"Fallback fill: {stats['fallback_fill']}"
         )
         return master_canvas
