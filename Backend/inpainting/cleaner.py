@@ -25,7 +25,6 @@ class HybridMangaCleaner:
             fill_color=programmatic_fill_color,
         )
 
-        # SD is now fully optional — None means white fill handles everything
         if generative_engine is not None:
             self.generative_engine = generative_engine
         elif (
@@ -57,7 +56,6 @@ class HybridMangaCleaner:
             mask = bubble["mask"]
             x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
 
-            # Always try programmatic first
             clean_patch = self.programmatic_engine.clean_solid_bubble(
                 master_canvas, mask, bbox
             )
@@ -67,7 +65,6 @@ class HybridMangaCleaner:
                 stats["programmatic"] += 1
 
             elif self.generative_engine is not None:
-                # SD inpainting only if model is loaded
                 clean_patch = self.generative_engine.clean_complex_bubble(
                     master_canvas, mask, bbox
                 )
@@ -75,7 +72,6 @@ class HybridMangaCleaner:
                 stats["generative"] += 1
 
             else:
-                # Hard fallback — white fill the masked region directly
                 master_canvas[mask > 0] = (255, 255, 255)
                 stats["fallback_fill"] += 1
 

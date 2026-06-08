@@ -2,13 +2,12 @@ import os
 import cv2
 import numpy as np
 from ultralytics import YOLO
-import json
 
 
 class SpeechBubbleDetector:
     def __init__(self, model_path: str):
         """
-        Initializes the YOLOv8 instance segmentation model once on boot to save VRAM.
+        Initializes the YOLOv8 instance segmentation model.
         """
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model weights not found at: {model_path}")
@@ -45,7 +44,6 @@ class SpeechBubbleDetector:
 
         h, w = image.shape[:2]
 
-        # Execute network feed-forward inference pass safely
         results = self.model.predict(
             source=image, imgsz=imgsz, conf=conf, verbose=False
         )[0]
@@ -55,29 +53,24 @@ class SpeechBubbleDetector:
         bubble_boxes = []
 
         if results.masks is not None:
-            # Step through matched bounding tracking segments simultaneously
             for i, (mask, box) in enumerate(zip(results.masks.data, results.boxes)):
-                # Cast the low-res mask array back to full resolution scale
+
                 mask_np = mask.cpu().numpy()
                 mask_resized = cv2.resize(
                     mask_np, (w, h), interpolation=cv2.INTER_LINEAR
                 )
 
-                # Binarize floating point mask values into sharp pixel selections
                 binary_mask = (mask_resized > 0.1).astype(np.uint8) * 255
 
-                # Apply structural closure to fuse minor holes inside typography lines
                 kernel = np.ones((5, 5), np.uint8)
                 binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel)
 
                 binary_mask = cv2.dilate(binary_mask, kernel, iterations=1)
                 binary_mask = cv2.erode(binary_mask, kernel, iterations=border_erosion)
 
-                # Append clean frame array boundaries
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
                 bubble_boxes.append((x1, y1, x2, y2))
 
-                # Fuse tracking element selection layers into a single reference matrix
                 combined_mask = cv2.bitwise_or(combined_mask, binary_mask)
 
                 bubble_list.append(
@@ -94,17 +87,15 @@ class SpeechBubbleDetector:
                     }
                 )
 
-        # Generate a colored overlay canvas for system verification
         annotated_image = image.copy()
         overlay = image.copy()
         overlay[combined_mask > 0] = [
             0,
             120,
             255,
-        ]  # Apply system default signature tint
+        ]
         annotated_image = cv2.addWeighted(overlay, 0.4, annotated_image, 0.6, 0)
 
-        # Draw debugging boundary rectangles
         for i, (x1, y1, x2, y2) in enumerate(bubble_boxes):
             cv2.rectangle(annotated_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(
@@ -125,7 +116,7 @@ class SpeechBubbleDetector:
 
 
 # ==============================================================================
-# Local Sandbox Execution Loop (Equivalent to script run logic)
+# Local Sandbox Execution Loop
 # ==============================================================================
 # if __name__ == "__main__":
 #     from pathlib import Path
