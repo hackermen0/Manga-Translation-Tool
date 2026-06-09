@@ -4,6 +4,7 @@
     import { imageState, zoomState, layerStateManager } from '$lib';
     import { Open } from '$lib';
     import { tick } from 'svelte';
+    import Filmstrip from './Filmstrip.svelte';
 
     let sortedLayers = $derived([...layerStateManager.layerList].sort((a, b) => a.zIndex - b.zIndex));
     let hasImages = $derived(sortedLayers.some(l => l.imageID && imageState.images[l.imageID]));
@@ -155,6 +156,9 @@
                 <Open buttonName={"Upload Image"} variant={"default"} icon={Upload}/>
                 <Button icon={Plus} variant={'outline'}>Create New Project</Button>
             </div>
+        </div>
+        <div>
+            <Filmstrip/>
         </div>
     {/if}
 </div>

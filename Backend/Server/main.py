@@ -26,8 +26,12 @@ app.add_middleware(
 )
 
 BASE_DIR = Path(__file__).resolve().parent
+print(BASE_DIR)
+
 WORKSPACES_DIR = BASE_DIR / "workspaces"
 WORKSPACES_DIR.mkdir(exist_ok=True)
+
+print(WORKSPACES_DIR)
 
 app.mount("/workspaces", StaticFiles(directory=str(WORKSPACES_DIR)), name="workspaces")
 

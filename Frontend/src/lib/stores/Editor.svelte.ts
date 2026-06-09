@@ -29,13 +29,22 @@ class EditorState {
 		this.activeSession = section;
 	}
 
-	initWorkspace(workspaceData: { workspace_id: string; pages: MangaPage[] }) {
+	initWorkspace(workspaceData: { workspace_id: string; pages: any[] }) {
 		this.workspaceId = workspaceData.workspace_id;
-		this.pages = workspaceData.pages;
+		
+		this.pages = workspaceData.pages.map((rawPage: any) => ({
+			pageId: rawPage.page_id,
+			originalFilename: rawPage.original_filename,
+			originalUrl: rawPage.original_url,
+			inpaintedUrl: rawPage.inpainted_url,
+			bubbles: rawPage.bubbles || []
+		}));
 		
 		if (this.pages.length > 0) {
 			this.activePageId = this.pages[0].pageId;
 		}
+
+		console.log("Normalized Frontend State Workspace Pages:", this.pages);
 	}
 
 	setActivePage(pageId: string) {

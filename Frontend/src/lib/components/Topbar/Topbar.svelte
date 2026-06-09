@@ -8,6 +8,7 @@
 		Type,
 		CheckCircle,
 		Save,
+		FolderOpen,
 		Undo,
 		Redo,
 		Rocket
@@ -30,7 +31,7 @@
 		<div class="flex items-center space-x-4">
 			<div class="flex items-center space-x-2">
 
-				<Open buttonName="Open" variant="ghost" size="sm" icon={Save}/>
+				<Open buttonName="Open" variant="ghost" size="sm" icon={FolderOpen}/>
 				<Button variant="ghost" size="sm" icon={Save}>Save</Button>
 				<Button variant="ghost" size="sm" icon={Rocket}>Export</Button>
 			</div>
