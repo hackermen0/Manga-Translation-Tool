@@ -8,7 +8,8 @@
             "y2": 914
         },
         "mask_path": "output\\bubble_masks\\069_bubble_000_mask.png",
-        "area_px": 11861
+        "area_px": 11861,
+        "original_text": "\u3044\u304d\u306a\u308a\u3069\u3046\u3057\u3061\u3083\u3063\u305f\u306e\u9054\u5742\u3055\u3093\uff0e\uff0e\uff0e\u3053\u308f\u3044\u3063"
     },
     {
         "bubble_id": 1,
@@ -19,7 +20,8 @@
             "y2": 906
         },
         "mask_path": "output\\bubble_masks\\069_bubble_001_mask.png",
-        "area_px": 13892
+        "area_px": 13892,
+        "original_text": "\u9ad8\u9808\u541b\u3068\u79c1\u304c\u590f\u4f11\u307f\u4e00\u7dd2\u306b\u904e\u3054\u3059\u306e\u304c\u305d\u3093\u306a\u306b\u30a4\u30e4\u306a\u306e\uff1f"
     },
     {
         "bubble_id": 2,
@@ -30,7 +32,8 @@
             "y2": 138
         },
         "mask_path": "output\\bubble_masks\\069_bubble_002_mask.png",
-        "area_px": 1200
+        "area_px": 1200,
+        "original_text": "\u304d\u3083\u3063"
     },
     {
         "bubble_id": 3,
@@ -41,7 +44,8 @@
             "y2": 1022
         },
         "mask_path": "output\\bubble_masks\\069_bubble_003_mask.png",
-        "area_px": 24036
+        "area_px": 24036,
+        "original_text": "\u305d\u3093\u306a\u30ef\u30b1\u306a\u3044\u3067\u3057\u3087\u3063\uff01\uff01\uff1f"
     },
     {
         "bubble_id": 4,
@@ -52,6 +56,7 @@
             "y2": 585
         },
         "mask_path": "output\\bubble_masks\\069_bubble_004_mask.png",
-        "area_px": 33776
+        "area_px": 33776,
+        "original_text": "\u52dd\u624b\u306a\u4e8b\u307b\u3056\u3044\u3066\u3093\u3058\u3083\u306a\u3044\u308f\u3088\uff01\uff01"
     }
 ]
