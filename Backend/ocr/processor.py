@@ -1,54 +1,84 @@
-# manga_ocr_processor.py skeleton
-from manga_ocr import MangaOcr
+from __future__ import annotations
+
+from typing import Any
+
 from PIL import Image
-import cv2
-import numpy as np
+
+try:
+    from manga_ocr import MangaOcr
+except ImportError:
+    MangaOcr = None
 
 
 class MangaOCRProcessor:
     def __init__(self):
+        if MangaOcr is None:
+            raise ImportError(
+                "manga_ocr is required to use MangaOCRProcessor. Install the 'manga-ocr' package first."
+            )
+
         self.mocr = MangaOcr()
 
-    def extract_page_text(self, image: Image, bubble_id: int):
+    def extract_page_text(self, image: Image.Image, bubble_id: int):
         """
         Args:
-            image: original pre-inpainted page
-            bubbles: bubble list from detector payload
+            image: cropped speech bubble image
+            bubble_id: detected bubble identifier
 
         Returns:
-            {bubble_id, text}
+            Dictionary containing the bubble id and OCR text.
         """
 
         original_text = self.mocr(image)
 
-        return bubble_id, original_text
+        return {"bubble_id": bubble_id, "original_text": original_text}
 
-    def _crop_bubble(self, image_path: str, bbox: list):
+    def extract_page_texts(self, image_path: str, bubbles: list[dict[str, Any]]):
+        """
+        Run OCR for every detected bubble on a page.
+
+        Args:
+            image_path: path to the original manga page.
+            bubbles: list of bubble payloads with bubble_id and bbox data.
+
+        Returns:
+            List of serializable OCR result dictionaries.
+        """
+
+        original_image = Image.open(image_path).convert("RGB")
+        results = []
+
+        for bubble in bubbles:
+            bubble_id = bubble["bubble_id"]
+            cropped_image = self._crop_bubble(original_image, bubble)
+            ocr_result = self.extract_page_text(cropped_image, bubble_id)
+
+            result = {"bubble_id": bubble_id, "bbox": bubble["bbox"], **ocr_result}
+            if "area_px" in bubble:
+                result["area_px"] = bubble["area_px"]
+            if "mask_path" in bubble:
+                result["mask_path"] = bubble["mask_path"]
+
+            results.append(result)
+
+        return results
+
+    def _crop_bubble(self, original_image: Image.Image, bubble: dict[str, Any]):
         """
         Crop + mask bubble region for clean OCR input.
 
         Args:
-            image_path: original pre-inpainted page
-            bbox: list of bounding box data of detected speech bubbles
+            original_image: original manga page image.
+            bubble: detected speech bubble payload.
 
         Returns:
-            {bubble_id, cropped_image}
-
-
+            Cropped bubble image.
         """
 
-        original_image = Image.open(image_path)
+        bbox_data = bubble["bbox"]
+        x1 = bbox_data["x1"]
+        x2 = bbox_data["x2"]
+        y1 = bbox_data["y1"]
+        y2 = bbox_data["y2"]
 
-        for data in bbox:
-
-            bubble_id = data["bubble_id"]
-            bbox_data = data["bbox"]
-
-            x1 = bbox_data["x1"]
-            x2 = bbox_data["x2"]
-            y1 = bbox_data["y1"]
-            y2 = bbox_data["y2"]
-
-            cropped_image = original_image.crop((x1, y1, x2, y2))
-
-            return (bubble_id, cropped_image)
+        return original_image.crop((x1, y1, x2, y2))
