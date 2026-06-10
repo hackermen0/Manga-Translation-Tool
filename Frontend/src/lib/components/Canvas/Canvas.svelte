@@ -1,10 +1,12 @@
 <script lang="ts">
     import { Upload, Plus } from '@lucide/svelte';
     import { Button } from '$lib';
-    import { imageState, zoomState, layerStateManager } from '$lib';
+    import { imageState, zoomState, layerStateManager, editorState } from '$lib';
     import { Open } from '$lib';
-    import { tick } from 'svelte';
-    import Filmstrip from './Filmstrip.svelte';
+    import { tick, untrack } from 'svelte';
+    import BubbleOverlay from './BubbleOverlay.svelte';
+
+    const BACKEND_URL = "http://127.0.0.1:8000";
 
     let sortedLayers = $derived([...layerStateManager.layerList].sort((a, b) => a.zIndex - b.zIndex));
     let hasImages = $derived(sortedLayers.some(l => l.imageID && imageState.images[l.imageID]));
@@ -13,6 +15,36 @@
     let containerWidth = $state(0);
     let containerHeight = $state(0);
     let isPanning = false;
+
+    $effect(() => {
+        const activePage = editorState.activePage;
+        if (!activePage) return;
+
+        untrack(() => {
+            const targetURL = `${BACKEND_URL}${activePage.inpaintedUrl || activePage.originalUrl}`;
+            const existingOriginalLayer = layerStateManager.layerList.find(l => l.name === 'Original Image');
+
+            if (!existingOriginalLayer) {
+                const img = new Image();
+                img.onload = () => {
+                    const newImageID = imageState.addImage({
+                        name: activePage.originalFilename,
+                        type: "image/png",
+                        size: 0,
+                        lastModified: Date.now(),
+                        imageURL: targetURL,
+                        width: img.naturalWidth,
+                        height: img.naturalHeight
+                    });
+
+                    const newImageLayerID = layerStateManager.addLayer('Original Image', "image");
+                    layerStateManager.setLayerImage(newImageLayerID, newImageID);
+                    layerStateManager.selectLayer(newImageLayerID);
+                };
+                img.src = targetURL;
+            }
+        });
+    });
 
     let canvasDimensions = $derived.by(() => {
         let maxWidth = 0;
@@ -111,6 +143,11 @@
 <div class="h-full w-full flex flex-col bg-secondary overflow-hidden">
     {#if hasImages}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="absolute top-4 right-4 z-50">
+            <Button onclick={() => editorState.loadDummyBubbles()}>Load Test Bubbles</Button>
+        </div>
+
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div 
             bind:this={scrollContainer}
             bind:clientWidth={containerWidth}
@@ -118,7 +155,7 @@
             class="flex-1 w-full h-full overflow-auto flex cursor-grab active:cursor-grabbing relative" 
             onmousedown={handleMouseDown}
             oncontextmenu={handleContextMenu}
-			onwheel={handleMouseWheel}
+            onwheel={handleMouseWheel}
         >
             <div 
                 class="m-auto relative bg-white shadow-lg transition-all duration-75 ease-out flex-shrink-0"
@@ -141,6 +178,11 @@
                         />
                     {/if}
                 {/each}
+
+                <BubbleOverlay 
+                    intrinsicWidth={canvasDimensions.width} 
+                    intrinsicHeight={canvasDimensions.height} 
+                />
             </div>
         </div>
     {:else}
@@ -156,9 +198,6 @@
                 <Open buttonName={"Upload Image"} variant={"default"} icon={Upload}/>
                 <Button icon={Plus} variant={'outline'}>Create New Project</Button>
             </div>
-        </div>
-        <div>
-            <Filmstrip/>
         </div>
     {/if}
 </div>

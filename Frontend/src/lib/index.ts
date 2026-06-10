@@ -1,6 +1,6 @@
 // Place files you want to import through the `$lib` alias in this folder.
 
-import Explorer from './components/Explorer/Explorer.svelte';
+import Filmstrip from './components/Filmstrip/Filmstrip.svelte';
 import Magnifier from './components/Bottombar/Magnifier/Magnifier.svelte';
 import Button from './components/ui/Button.svelte';
 import Topbar from './components/Topbar/Topbar.svelte';
@@ -22,7 +22,7 @@ import GlossaryCard from './components/Right Sidebar/Glossary/GlossaryCard.svelt
 import GlossaryButton from './components/Right Sidebar/Glossary/GlossaryButton.svelte';
 
 export { 
-    Explorer, 
+    Filmstrip, 
     Magnifier,
     Button, 
     Topbar, 

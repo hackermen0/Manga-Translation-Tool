@@ -8,6 +8,7 @@ from typing import List
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 backend_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(backend_dir))
@@ -95,6 +96,63 @@ async def create_workspace(files: List[UploadFile] = File(...)):
         "message": f"Workspace {workspace_id} created successfully with {len(files)} pages.",
         "workspace": chapter_state,
     }
+
+
+@app.get("/api/workspace/{workspace_id}")
+async def load_workspace(workspace_id: str):
+    """
+    Looks up an existing workspace directory by its ID and returns
+    the stored master chapter_data.json configuration state.
+    """
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not session_dir.exists() or not state_file_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Workspace session '{workspace_id}' not found on server disk.",
+        )
+
+    try:
+        with open(state_file_path, "r", encoding="utf-8") as f:
+            chapter_state = json.load(f)
+        return {"status": "success", "workspace": chapter_state}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to read existing workspace state: {str(e)}"
+        )
+
+
+class ReorderRequest(BaseModel):
+    new_order: List[str]
+
+
+@app.post("/api/workspace/{workspace_id}/reorder")
+async def reorder_workspace(workspace_id: str, payload: ReorderRequest):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    pages_dict = {
+        str(int(p["page_id"].replace("page_", ""))): p for p in chapter_state["pages"]
+    }
+
+    reordered_pages = []
+    for frontend_id in payload.new_order:
+        if frontend_id in pages_dict:
+            reordered_pages.append(pages_dict[frontend_id])
+
+    chapter_state["pages"] = reordered_pages
+
+    with open(state_file_path, "w", encoding="utf-8") as f:
+        json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+
+    return {"status": "success", "message": "Workspace reordered."}
 
 
 if __name__ == "__main__":

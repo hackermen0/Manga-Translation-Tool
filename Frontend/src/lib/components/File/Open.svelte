@@ -11,13 +11,14 @@
 </script>
 
 <script lang="ts">
-    import { Button } from '$lib';
+    import { Button, imageState, layerStateManager } from '$lib';
     import { editorState } from '$lib/stores/Editor.svelte';
 
     let fileInput: HTMLElement;
     let { buttonName, variant, size, icon }: Props = $props();
     
     let isUploading = $state(false);
+    const BACKEND_URL = "http://127.0.0.1:8000";
 
     let handleFileSelection = async (event: Event) => {
         const target = event.target as HTMLInputElement;
@@ -29,12 +30,11 @@
 
         try {
             const formData = new FormData();
-            
             Array.from(files).forEach((file) => {
                 formData.append('files', file);
             });
 
-            const response = await fetch('http://127.0.0.1:8000/api/workspace/create', {
+            const response = await fetch(`${BACKEND_URL}/api/workspace/create`, {
                 method: 'POST',
                 body: formData
             });
@@ -46,17 +46,40 @@
             const result = await response.json();
 
             if (result.status === 'success') {
-                console.log("Workspace initialized successfully:", result.workspace);
-                
                 editorState.initWorkspace(result.workspace);
                 
-                // (Optional) You can hook your layerStateManager here if you want to 
-                // instantly load the first page's URL into the original layer right after upload.
+                const firstPage = editorState.pages[0];
+                if (firstPage) {
+                    const img = new Image();
+                    img.onload = () => {
+                        const newImageID = imageState.addImage({
+                            name: firstPage.originalFilename,
+                            type: "image/png",
+                            size: 0,
+                            lastModified: Date.now(),
+                            imageURL: `${BACKEND_URL}${firstPage.originalUrl}`,
+                            width: img.naturalWidth,
+                            height: img.naturalHeight
+                        });
+
+                        const originalLayer = layerStateManager.layerList.find(l => l.name === 'Original Image');
+                        
+                        if (originalLayer) {
+                            layerStateManager.setLayerImage(originalLayer.id, newImageID);
+                            layerStateManager.selectLayer(originalLayer.id);
+                        } else {
+                            const newImageLayerID = layerStateManager.addLayer(firstPage.originalFilename, "image");
+                            layerStateManager.setLayerImage(newImageLayerID, newImageID);
+                            layerStateManager.selectLayer(newImageLayerID);
+                        }
+                    };
+                    img.src = `${BACKEND_URL}${firstPage.originalUrl}`;
+                }
             }
 
         } catch (error) {
             console.error("Failed to upload chapter files:", error);
-            alert("Error uploading files to the backend server. Make sure FastAPI is running!");
+            alert("Error uploading files to the backend server.");
         } finally {
             isUploading = false;
             target.value = "";

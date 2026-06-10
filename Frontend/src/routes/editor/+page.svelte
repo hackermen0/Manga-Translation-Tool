@@ -1,42 +1,34 @@
 <script lang="ts">
-	import { Explorer, Topbar, Bottombar, Canvas, RSidebar } from '$lib';
+	import { Filmstrip, Topbar, Bottombar, Canvas, RSidebar } from '$lib';
 	import { editorState } from '$lib';
+	import { onMount } from 'svelte';
 
-	const items = [
-		{ value: '1', fileName: 'Image 1.png', type: 'image' },
-		{ value: '2', fileName: 'Image 2.png', type: 'image' },
-		{ value: '3', fileName: 'The biggest.png', type: 'image' },
-		{ value: '4', fileName: 'Image 4.png', type: 'image' },
-		{ value: '5', fileName: 'Image 5.png', type: 'image' },
-		{ value: '6', fileName: 'Image 6.png', type: 'image' },
-		{ value: '7', fileName: 'Image 7.png', type: 'image' },
-		{ value: '8', fileName: 'Image 8.png', type: 'image' },
-		{ value: '9', fileName: 'Image 9.png', type: 'image' },
-		{
-			value: '10',
-			fileName: 'More Images',
-			type: 'folder',
-			items: [
-				{ value: '1', fileName: 'Secret Image 1.png', type: 'image' },
-				{ value: '2', fileName: 'Secret Image 2.png', type: 'image' },
-				{ value: '3', fileName: 'Secret Image 3.png', type: 'image' },
-				{ value: '4', fileName: 'Secret Image 4.png', type: 'image' },
-				{
-					value: '5',
-					fileName: 'The biggest secret',
-					type: 'folder',
-					items: [
-						{ value: '1', fileName: 'Super Secret 1.png', type: 'image' },
-						{ value: '2', fileName: 'Super Secret 2.png', type: 'image' },
-						{ value: '3', fileName: 'Super Secret 3.png', type: 'image' },
-						{ value: '4', fileName: 'Super Secret 4.png', type: 'image' },
-						{ value: '5', fileName: 'Super Secret 5.png', type: 'image' },
-						{ value: '6', fileName: 'Super Secret 6.png', type: 'image' }
-					]
-				}
-			]
+	const BACKEND_URL = "http://127.0.0.1:8000";
+
+	onMount(async () => {
+		if (editorState.workspaceId) return;
+
+		const savedWorkspaceId = localStorage.getItem('active_manga_workspace_id');
+		if (!savedWorkspaceId) return;
+
+		console.log(`Found active session: ${savedWorkspaceId}. Restoring...`);
+
+		try {
+			const response = await fetch(`${BACKEND_URL}/api/workspace/${savedWorkspaceId}`);
+			if (!response.ok) {
+				if (response.status === 404) localStorage.removeItem('active_manga_workspace_id');
+				throw new Error("Could not find saved workspace on server.");
+			}
+
+			const result = await response.json();
+			if (result.status === 'success') {
+				editorState.initWorkspace(result.workspace);
+			}
+		} catch (err) {
+			console.error("Failed to automatically rehydrate layout workspace state:", err);
 		}
-	];
+	});
+
 </script>
 
 <div class="bg-secondary flex h-screen w-screen flex-col overflow-hidden border-2">
@@ -48,7 +40,7 @@
 	<div class="flex flex-1 flex-row overflow-hidden">
 		
 		<div class="bg-background-light border-primary-border flex-none w-[279px] overflow-y-auto border-r-2">
-			<Explorer items={items} />
+			<Filmstrip/>
 		</div>
 
 		<div class="flex-1 relative bg-gray-50 overflow-hidden">
