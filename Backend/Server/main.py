@@ -14,6 +14,7 @@ backend_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(backend_dir))
 
 from ocr.pipeline import MangaOCRPipeline  # noqa: E402
+from ocr.processor import MangaOCRProcessor  # noqa: E402
 from translation.translate import MangaTranslationEngine  # noqa: E402
 from speech_bubble_detection.detector import SpeechBubbleDetector  # noqa: E402
 
@@ -98,6 +99,7 @@ async def create_workspace(files: List[UploadFile] = File(...)):
                     "original_url": f"/workspaces/{workspace_id}/original/{safe_filename}",
                     "inpainted_url": None,
                     "bubbles": [],
+                    "detected": False,
                 }
             )
 
@@ -214,6 +216,7 @@ async def detect_bubbles(workspace_id: str, page_id: str):
         )
 
     target_page["bubbles"] = frontend_bubbles
+    target_page["detected"] = True
 
     with open(state_file_path, "w", encoding="utf-8") as f:
         json.dump(chapter_state, f, ensure_ascii=False, indent=2)
@@ -250,6 +253,66 @@ async def update_bubbles(workspace_id: str, page_id: str, payload: BubblesPayloa
         json.dump(chapter_state, f, ensure_ascii=False, indent=2)
 
     return {"status": "success"}
+
+
+ocr_processor = None
+
+
+def get_ocr_processor():
+    global ocr_processor
+    if ocr_processor is None:
+        ocr_processor = MangaOCRProcessor()
+    return ocr_processor
+
+
+@app.post("/api/workspace/{workspace_id}/page/{page_id}/ocr")
+async def run_page_ocr(workspace_id: str, page_id: str):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (
+            p
+            for p in chapter_state["pages"]
+            if str(int(p["page_id"].replace("page_", ""))) == page_id
+        ),
+        None,
+    )
+
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    filename = Path(target_page["original_url"]).name
+    image_path = session_dir / "original" / filename
+
+    bubbles = target_page.get("bubbles", [])
+    if not bubbles:
+        return {"status": "success", "bubbles": []}
+
+    processor = get_ocr_processor()
+    ocr_results = processor.extract_page_texts(str(image_path), bubbles)
+
+    # Map OCR results back to target_page["bubbles"]
+    # ocr_results has [{"bubble_id": int, "original_text": str, ...}]
+    ocr_by_id = {res["bubble_id"]: res["original_text"] for res in ocr_results}
+
+    for b in bubbles:
+        bid = b["id"]
+        if bid in ocr_by_id:
+            b["ja_text"] = ocr_by_id[bid]
+
+    target_page["bubbles"] = bubbles
+
+    with open(state_file_path, "w", encoding="utf-8") as f:
+        json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+
+    return {"status": "success", "bubbles": bubbles}
 
 
 if __name__ == "__main__":

@@ -140,11 +140,11 @@
 <svg 
     bind:this={svgElement}
     viewBox="0 0 {intrinsicWidth} {intrinsicHeight}" 
-    class="absolute top-0 left-0 w-full h-full z-50 {editorState.activeSession === 'detection' ? 'pointer-events-auto' : 'pointer-events-none'}"
+    class="absolute top-0 left-0 w-full h-full z-50 {(editorState.activeSession === 'detection' || editorState.activeSession === 'translation') ? 'pointer-events-auto' : 'pointer-events-none'}"
     onclick={handleSvgClick}
     ondblclick={handleSvgDoubleClick}
 >
-    {#if editorState.activeDetectionTool === 'create' && draftPoints.length > 0}
+    {#if editorState.activeSession === 'detection' && editorState.activeDetectionTool === 'create' && draftPoints.length > 0}
         <polyline 
             points={draftPoints.map(p => `${p.x},${p.y}`).join(' ')}
             fill="rgba(255, 183, 150, 0.4)"
@@ -161,20 +161,29 @@
         {#each editorState.activePage.bubbles as bubble (bubble.id)}
             {@const pointsString = bubble.points.map(p => `${p.x},${p.y}`).join(' ')}
             {@const isHovered = activeBubbleId === bubble.id}
+            {@const isSelected = editorState.activeSession === 'translation' && editorState.activeBubbleId === bubble.id}
             
             <g>
                 <polygon 
                     points={pointsString}
-                    fill={isHovered || editorState.activeDetectionTool === 'delete' ? "rgba(255, 183, 150, 0.4)" : "rgba(255, 183, 150, 0.2)"}
-                    stroke={isHovered || editorState.activeDetectionTool === 'delete' ? "#22c55e" : "rgba(34, 197, 94, 0.6)"}
-                    stroke-width={intrinsicWidth * 0.0025}
-                    class="transition-colors duration-150 {editorState.activeDetectionTool === 'drag' ? 'cursor-move' : editorState.activeDetectionTool === 'delete' ? 'cursor-pointer hover:fill-red-200 hover:stroke-red-500' : ''}"
-                    onpointerdown={(e) => handleBodyPointerDown(e, bubble.id)}
+                    fill={isSelected ? "rgba(34, 197, 94, 0.3)" : (isHovered || (editorState.activeSession === 'detection' && editorState.activeDetectionTool === 'delete') ? "rgba(255, 183, 150, 0.4)" : "rgba(255, 183, 150, 0.2)")}
+                    stroke={isSelected ? "#22c55e" : (isHovered || (editorState.activeSession === 'detection' && editorState.activeDetectionTool === 'delete') ? "#f97316" : "rgba(34, 197, 94, 0.6)")}
+                    stroke-width={intrinsicWidth * (isSelected ? 0.0035 : 0.0025)}
+                    class="transition-colors duration-150 {editorState.activeSession === 'translation' ? 'cursor-pointer hover:fill-green-100/30' : (editorState.activeDetectionTool === 'drag' ? 'cursor-move' : editorState.activeDetectionTool === 'delete' ? 'cursor-pointer hover:fill-red-200 hover:stroke-red-500' : '')}"
+                    onpointerdown={(e) => {
+                        if (editorState.activeSession === 'translation') {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            editorState.activeBubbleId = bubble.id;
+                        } else {
+                            handleBodyPointerDown(e, bubble.id);
+                        }
+                    }}
                     onpointerenter={() => { if (!isDraggingBody && activePointIndex === null) activeBubbleId = bubble.id }}
                     onpointerleave={() => { if (!isDraggingBody && activePointIndex === null) activeBubbleId = null }}
                 />
 
-                {#if editorState.activeDetectionTool === 'edit' && (isHovered || activePointIndex !== null)}
+                {#if editorState.activeSession === 'detection' && editorState.activeDetectionTool === 'edit' && (isHovered || activePointIndex !== null)}
                     {#each bubble.points as point, i}
                         <circle 
                             cx={point.x} 

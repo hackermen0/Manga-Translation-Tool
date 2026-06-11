@@ -17,6 +17,7 @@ export interface MangaPage {
 	originalUrl: string;
 	inpaintedUrl: string | null;
 	bubbles: MangaBubble[];
+	detected: boolean;
 }
 
 class EditorState {
@@ -24,6 +25,7 @@ class EditorState {
 
 	workspaceId = $state<string | null>(null);
 	activePageId = $state<string | null>(null);
+	activeBubbleId = $state<number | null>(null);
 	isProcessing = $state<boolean>(false);
 	pages = $state<MangaPage[]>([]);
 
@@ -54,6 +56,7 @@ class EditorState {
 			originalUrl: rawPage.original_url,
 			inpaintedUrl: rawPage.inpainted_url,
 			bubbles: rawPage.bubbles || [],
+			detected: rawPage.detected ?? (rawPage.bubbles && rawPage.bubbles.length > 0),
 			layers: [],
 			selectedLayerId: null
 		}));
@@ -71,6 +74,13 @@ class EditorState {
         }
         
         this.activePageId = pageId;
+        
+        const page = this.pages.find(p => p.pageId === pageId);
+        if (page && page.bubbles && page.bubbles.length > 0) {
+            this.activeBubbleId = page.bubbles[0].id;
+        } else {
+            this.activeBubbleId = null;
+        }
 
         layerStateManager.loadPage(pageId);
     }
@@ -137,6 +147,12 @@ class EditorState {
 				const page = this.activePage;
 				if (page) {
 					page.bubbles = data.bubbles;
+					page.detected = true;
+					if (page.bubbles.length > 0) {
+						this.activeBubbleId = page.bubbles[0].id;
+					} else {
+						this.activeBubbleId = null;
+					}
 				}
 			}
 		} catch (error) {
@@ -147,9 +163,43 @@ class EditorState {
 		}
 	}
 
+	async runOcr() {
+		if (!this.workspaceId || !this.activePageId) return;
+
+		this.isProcessing = true;
+		
+		try {
+			const response = await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${this.activePageId}/ocr`, {
+				method: 'POST'
+			});
+
+			if (!response.ok) {
+				throw new Error(`Server responded with ${response.status}`);
+			}
+
+			const data = await response.json();
+
+			if (data.status === 'success') {
+				const page = this.activePage;
+				if (page) {
+					page.bubbles = data.bubbles;
+					if (page.bubbles.length > 0 && this.activeBubbleId === null) {
+						this.activeBubbleId = page.bubbles[0].id;
+					}
+				}
+			}
+		} catch (error) {
+			console.error("Manga OCR failed:", error);
+			alert("Failed to run Manga OCR. Is your FastAPI server running?");
+		} finally {
+			this.isProcessing = false;
+		}
+	}
+
 	async saveBubbles() {
 		if (!this.workspaceId || !this.activePageId || !this.activePage) return;
 		try {
+			this.activePage.detected = true;
 			await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${this.activePageId}/bubbles`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
@@ -157,7 +207,7 @@ class EditorState {
 			});
 		} catch (e) {
 			console.error("Failed to save bubble layout to server", e);
-    }
+		}
 	}
 }
 

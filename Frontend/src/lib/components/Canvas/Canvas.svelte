@@ -199,7 +199,7 @@
                         {/if}
                     {/each}
 
-                    {#if editorState.activeSession === 'detection'}
+                    {#if editorState.activeSession === 'detection' || editorState.activeSession === 'translation'}
                         <BubbleOverlay 
                             intrinsicWidth={canvasDimensions.width} 
                             intrinsicHeight={canvasDimensions.height} 
