@@ -20,12 +20,18 @@ export interface MangaPage {
 }
 
 class EditorState {
-	activeSession = $state('translation');
+	activeSession = $state('detection');
 
 	workspaceId = $state<string | null>(null);
 	activePageId = $state<string | null>(null);
 	isProcessing = $state<boolean>(false);
 	pages = $state<MangaPage[]>([]);
+
+	activeDetectionTool = $state<'edit' | 'drag' | 'create' | 'delete'>('edit');
+
+	setDetectionTool(tool: 'edit' | 'drag' | 'create' | 'delete') {
+		this.activeDetectionTool = tool;
+	}
 
 	get activePage(): MangaPage | undefined {
 		return this.pages.find(p => p.pageId === this.activePageId);
@@ -114,7 +120,6 @@ class EditorState {
 	async detectBubbles() {
 		if (!this.workspaceId || !this.activePageId) return;
 
-		// 1. Trigger the loading state
 		this.isProcessing = true;
 		
 		try {
@@ -128,7 +133,6 @@ class EditorState {
 
 			const data = await response.json();
 
-			// 2. Inject the real AI mask polygons into the active page
 			if (data.status === 'success') {
 				const page = this.activePage;
 				if (page) {
@@ -139,9 +143,21 @@ class EditorState {
 			console.error("Speech bubble detection failed:", error);
 			alert("Failed to run AI detection. Is your FastAPI server running?");
 		} finally {
-			// 3. Turn off the loading state
 			this.isProcessing = false;
 		}
+	}
+
+	async saveBubbles() {
+		if (!this.workspaceId || !this.activePageId || !this.activePage) return;
+		try {
+			await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${this.activePageId}/bubbles`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ bubbles: this.activePage.bubbles })
+			});
+		} catch (e) {
+			console.error("Failed to save bubble layout to server", e);
+    }
 	}
 }
 

@@ -5,6 +5,7 @@
     import { Open } from '$lib';
     import { tick, untrack } from 'svelte';
     import BubbleOverlay from './BubbleOverlay.svelte';
+    import DetectionToolbar from './Toolbar/DetectionToolbar.svelte';
 
     const BACKEND_URL = "http://127.0.0.1:8000";
 
@@ -180,30 +181,36 @@
                 class="m-auto relative bg-white shadow-lg transition-all duration-75 ease-out flex-shrink-0"
                 style="width: {displayWidth}px; height: {displayHeight}px;"
             >
-                {#each sortedLayers as layer (layer.id)}
-                    {#if layer.visibility && layer.imageID && imageState.images[layer.imageID]}
-                        <img 
-                            src={imageState.images[layer.imageID].imageURL} 
-                            alt={layer.name}
-                            draggable="false"
-                            class="absolute top-1/2 left-1/2 max-w-full max-h-full object-contain"
-                            style="
-                                transform: translate(-50%, -50%);
-                                opacity: {layer.opacity / 100}; 
-                                pointer-events: {layer.locked ? 'none' : 'auto'};
-                                width: auto; 
-                                height: auto;
-                            "
+                    {#each sortedLayers as layer (layer.id)}
+                        {#if layer.visibility && layer.imageID && imageState.images[layer.imageID]}
+                            <img 
+                                src={imageState.images[layer.imageID].imageURL} 
+                                alt={layer.name}
+                                draggable="false"
+                                class="absolute top-1/2 left-1/2 max-w-full max-h-full object-contain"
+                                style="
+                                    transform: translate(-50%, -50%);
+                                    opacity: {layer.opacity / 100}; 
+                                    pointer-events: {layer.locked ? 'none' : 'auto'};
+                                    width: auto; 
+                                    height: auto;
+                                "
+                            />
+                        {/if}
+                    {/each}
+
+                    {#if editorState.activeSession === 'detection'}
+                        <BubbleOverlay 
+                            intrinsicWidth={canvasDimensions.width} 
+                            intrinsicHeight={canvasDimensions.height} 
                         />
                     {/if}
-                {/each}
-
-                <BubbleOverlay 
-                    intrinsicWidth={canvasDimensions.width} 
-                    intrinsicHeight={canvasDimensions.height} 
-                />
+                </div>
             </div>
-        </div>
+        
+            {#if editorState.activeSession === 'detection'}
+                <DetectionToolbar />
+            {/if}
     {:else}
         <div class="h-full flex flex-col items-center justify-center gap-3 text-black">
             <div class="flex aspect-square w-32 items-center justify-center rounded-lg border-3 border-dashed border-gray-400 text-gray-400">

@@ -42,6 +42,22 @@ print(DETECTOR_WEIGHTS)
 bubble_detector = SpeechBubbleDetector(DETECTOR_WEIGHTS)
 
 
+class PointModel(BaseModel):
+    x: float
+    y: float
+
+
+class BubbleUpdateModel(BaseModel):
+    id: int
+    points: List[PointModel]
+    ja_text: str = ""
+    en_text: str = ""
+
+
+class BubblesPayload(BaseModel):
+    bubbles: List[BubbleUpdateModel]
+
+
 @app.post("/api/workspace/create")
 async def create_workspace(files: List[UploadFile] = File(...)):
     """
@@ -203,6 +219,37 @@ async def detect_bubbles(workspace_id: str, page_id: str):
         json.dump(chapter_state, f, ensure_ascii=False, indent=2)
 
     return {"status": "success", "bubbles": frontend_bubbles}
+
+
+@app.put("/api/workspace/{workspace_id}/page/{page_id}/bubbles")
+async def update_bubbles(workspace_id: str, page_id: str, payload: BubblesPayload):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (
+            p
+            for p in chapter_state["pages"]
+            if str(int(p["page_id"].replace("page_", ""))) == page_id
+        ),
+        None,
+    )
+
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    target_page["bubbles"] = [b.model_dump() for b in payload.bubbles]
+
+    with open(state_file_path, "w", encoding="utf-8") as f:
+        json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+
+    return {"status": "success"}
 
 
 if __name__ == "__main__":
