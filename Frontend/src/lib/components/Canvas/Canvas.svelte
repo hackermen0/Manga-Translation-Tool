@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Upload, Plus } from '@lucide/svelte';
+    import { Upload, Plus, ScanText, Loader2 } from '@lucide/svelte';
     import { Button } from '$lib';
     import { imageState, zoomState, layerStateManager, editorState } from '$lib';
     import { Open } from '$lib';
@@ -76,6 +76,12 @@
     let displayHeight = $derived(canvasDimensions.height * baseScale * (zoomState.zoomLevel / 100));
 
     function handleMouseDown(e: MouseEvent) {
+        const target = e.target as HTMLElement;
+        if (target.closest('svg')) {
+            return;
+        }
+
+        // Your existing panning logic
         if (e.button === 2 || e.button === 1) { 
             isPanning = true;
             e.preventDefault();
@@ -144,8 +150,21 @@
     {#if hasImages}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="absolute top-4 right-4 z-50">
-            <Button onclick={() => editorState.loadDummyBubbles()}>Load Test Bubbles</Button>
-        </div>
+			<Button 
+				variant="default"
+				onclick={() => editorState.detectBubbles()} 
+				disabled={editorState.isProcessing}
+				class="shadow-lg flex gap-2 items-center transition-all"
+			>
+				{#if editorState.isProcessing}
+					<Loader2 class="w-4 h-4 animate-spin" />
+					Detecting...
+				{:else}
+					<ScanText class="w-4 h-4" />
+					AI Detect Text
+				{/if}
+			</Button>
+		</div>
 
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div 

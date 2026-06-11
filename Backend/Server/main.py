@@ -15,6 +15,7 @@ sys.path.append(str(backend_dir))
 
 from ocr.pipeline import MangaOCRPipeline  # noqa: E402
 from translation.translate import MangaTranslationEngine  # noqa: E402
+from speech_bubble_detection.detector import SpeechBubbleDetector  # noqa: E402
 
 app = FastAPI(title="Manga Translation Engine Hub")
 
@@ -36,7 +37,9 @@ print(WORKSPACES_DIR)
 
 app.mount("/workspaces", StaticFiles(directory=str(WORKSPACES_DIR)), name="workspaces")
 
-DETECTOR_WEIGHTS = str(BASE_DIR / "models" / "bubble_segmenter_best.pt")
+DETECTOR_WEIGHTS = str(BASE_DIR.parent / "models" / "bubble_segmenter_best.pt")
+print(DETECTOR_WEIGHTS)
+bubble_detector = SpeechBubbleDetector(DETECTOR_WEIGHTS)
 
 
 @app.post("/api/workspace/create")
@@ -153,6 +156,53 @@ async def reorder_workspace(workspace_id: str, payload: ReorderRequest):
         json.dump(chapter_state, f, ensure_ascii=False, indent=2)
 
     return {"status": "success", "message": "Workspace reordered."}
+
+
+@app.post("/api/workspace/{workspace_id}/page/{page_id}/detect")
+async def detect_bubbles(workspace_id: str, page_id: str):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (
+            p
+            for p in chapter_state["pages"]
+            if str(int(p["page_id"].replace("page_", ""))) == page_id
+        ),
+        None,
+    )
+
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found")
+
+    filename = Path(target_page["original_url"]).name
+    image_path = session_dir / "original" / filename
+
+    payload = bubble_detector.process_page(str(image_path), conf=0.2)
+
+    frontend_bubbles = []
+    for b in payload["bubbles"]:
+        frontend_bubbles.append(
+            {
+                "id": b["bubble_id"],
+                "points": b["points"],
+                "ja_text": "",
+                "en_text": "",
+            }
+        )
+
+    target_page["bubbles"] = frontend_bubbles
+
+    with open(state_file_path, "w", encoding="utf-8") as f:
+        json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+
+    return {"status": "success", "bubbles": frontend_bubbles}
 
 
 if __name__ == "__main__":

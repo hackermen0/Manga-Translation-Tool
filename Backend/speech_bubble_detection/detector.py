@@ -68,6 +68,22 @@ class SpeechBubbleDetector:
                 binary_mask = cv2.dilate(binary_mask, kernel, iterations=1)
                 binary_mask = cv2.erode(binary_mask, kernel, iterations=border_erosion)
 
+                contours, _ = cv2.findContours(
+                    binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+                )
+                points = []
+                if contours:
+                    largest_contour = max(contours, key=cv2.contourArea)
+
+                    epsilon = 0.005 * cv2.arcLength(largest_contour, True)
+                    approx_polygon = cv2.approxPolyDP(largest_contour, epsilon, True)
+
+                    points = [
+                        {"x": float(pt[0][0]), "y": float(pt[0][1])}
+                        for pt in approx_polygon
+                    ]
+                # ------------------------------------------------------------
+
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
                 bubble_boxes.append((x1, y1, x2, y2))
 
@@ -75,13 +91,14 @@ class SpeechBubbleDetector:
 
                 bubble_list.append(
                     {
-                        "bubble_id": i,
+                        "bubble_id": i + 1,
                         "bbox": {
                             "x1": int(x1),
                             "y1": int(y1),
                             "x2": int(x2),
                             "y2": int(y2),
                         },
+                        "points": points,
                         "mask": binary_mask,
                         "area_px": int(np.sum(binary_mask > 0)),
                     }

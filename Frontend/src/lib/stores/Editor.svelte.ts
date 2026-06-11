@@ -1,8 +1,12 @@
 import { layerStateManager } from '$lib';
 
+export interface Point {
+    x: number;
+    y: number;
+}
 export interface MangaBubble {
 	id: number;
-	bbox: { x1: number; y1: number; x2: number; y2: number };
+	points: Point[];
 	ja_text: string;
 	en_text: string;
 }
@@ -95,17 +99,49 @@ class EditorState {
 		page.bubbles = [
 			{
 				id: 1,
-				bbox: { x1: 100, y1: 150, x2: 300, y2: 400 },
+				points: [
+					{ x: 150, y: 100 }, { x: 350, y: 100 }, 
+					{ x: 400, y: 200 }, { x: 350, y: 300 }, 
+					{ x: 200, y: 350 }, { x: 150, y: 300 }, 
+					{ x: 100, y: 200 }
+				],
 				ja_text: "テスト",
 				en_text: "Test bubble"
-			},
-			{
-				id: 2,
-				bbox: { x1: 450, y1: 200, x2: 700, y2: 350 },
-				ja_text: "ダミー",
-				en_text: "Dummy text"
 			}
 		];
+	}
+
+	async detectBubbles() {
+		if (!this.workspaceId || !this.activePageId) return;
+
+		// 1. Trigger the loading state
+		this.isProcessing = true;
+		
+		try {
+			const response = await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${this.activePageId}/detect`, {
+				method: 'POST'
+			});
+
+			if (!response.ok) {
+				throw new Error(`Server responded with ${response.status}`);
+			}
+
+			const data = await response.json();
+
+			// 2. Inject the real AI mask polygons into the active page
+			if (data.status === 'success') {
+				const page = this.activePage;
+				if (page) {
+					page.bubbles = data.bubbles;
+				}
+			}
+		} catch (error) {
+			console.error("Speech bubble detection failed:", error);
+			alert("Failed to run AI detection. Is your FastAPI server running?");
+		} finally {
+			// 3. Turn off the loading state
+			this.isProcessing = false;
+		}
 	}
 }
 
