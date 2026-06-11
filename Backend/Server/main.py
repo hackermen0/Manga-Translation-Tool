@@ -298,8 +298,6 @@ async def run_page_ocr(workspace_id: str, page_id: str):
     processor = get_ocr_processor()
     ocr_results = processor.extract_page_texts(str(image_path), bubbles)
 
-    # Map OCR results back to target_page["bubbles"]
-    # ocr_results has [{"bubble_id": int, "original_text": str, ...}]
     ocr_by_id = {res["bubble_id"]: res["original_text"] for res in ocr_results}
 
     for b in bubbles:

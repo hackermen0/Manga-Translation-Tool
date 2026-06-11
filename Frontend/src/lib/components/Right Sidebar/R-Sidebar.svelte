@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ScrollArea } from 'bits-ui';
-	import { Layers, TranslationPanel } from '$lib';
+	import { Layers, TranslationPanel, DetectionPanel } from '$lib';
 	import { editorState } from '$lib';
 </script>
 
@@ -8,6 +8,9 @@
 	<ScrollArea.Viewport class="h-full w-full">
 		<div class="flex flex-col gap-10 p-4">
 			<Layers />
+			{#if editorState.activeSession === 'detection'}
+				<DetectionPanel />
+			{/if}
 			{#if editorState.activeSession === 'translation'}
 				<TranslationPanel />
 			{/if}

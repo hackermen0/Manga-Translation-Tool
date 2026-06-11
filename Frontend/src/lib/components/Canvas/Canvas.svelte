@@ -149,23 +149,7 @@
 
 <div class="h-full w-full flex flex-col bg-secondary overflow-hidden">
     {#if hasImages}
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="absolute top-4 right-4 z-50">
-			<Button 
-				variant="default"
-				onclick={() => editorState.detectBubbles()} 
-				disabled={editorState.isProcessing}
-				class="shadow-lg flex gap-2 items-center transition-all"
-			>
-				{#if editorState.isProcessing}
-					<Loader2 class="w-4 h-4 animate-spin" />
-					Detecting...
-				{:else}
-					<ScanText class="w-4 h-4" />
-					AI Detect Text
-				{/if}
-			</Button>
-		</div>
+
 
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div 

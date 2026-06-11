@@ -10,6 +10,7 @@ import Canvas from './components/Canvas/Canvas.svelte';
 import LayerCard from './components/Right Sidebar/Layers/LayerCard.svelte';
 import Layers from './components/Right Sidebar/Layers/LayersPanel.svelte';
 import TranslationPanel from './components/Right Sidebar/Translation/TranslationPanel.svelte';
+import DetectionPanel from './components/Right Sidebar/Detection/DetectionPanel.svelte';
 import RSidebar from './components/Right Sidebar/R-Sidebar.svelte';
 import { editorState } from './stores/Editor.svelte';
 import { zoomState } from './stores/Zoom.svelte';
@@ -32,6 +33,7 @@ export {
     LayerCard, 
     Layers, 
     TranslationPanel,
+    DetectionPanel,
     RSidebar, 
     editorState, 
     zoomState, 
