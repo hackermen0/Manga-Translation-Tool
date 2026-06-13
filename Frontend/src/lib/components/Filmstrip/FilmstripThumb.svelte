@@ -3,6 +3,7 @@
     import { CSS, styleObjectToString } from '@dnd-kit-svelte/utilities';
     import type { UniqueIdentifier } from "@dnd-kit-svelte/core";
     import type { MangaPage } from '$lib/stores/Editor.svelte';
+    import { editorState } from '$lib/stores/Editor.svelte';
 
     let { page, isActivePage, onclick } = $props<{ 
         page: MangaPage, 
@@ -40,7 +41,7 @@
         {onclick}
     >
         <img
-            src={`${BACKEND_URL}${page.inpaintedUrl || page.originalUrl}`}
+            src={`${BACKEND_URL}${editorState.activeSession === 'redrawing' && page.inpaintedUrl ? page.inpaintedUrl : page.originalUrl}`}
             alt={page.originalFilename}
             class="w-full h-auto object-cover rounded-sm bg-white pointer-events-none"
             draggable="false"

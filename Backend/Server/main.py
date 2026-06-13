@@ -13,10 +13,12 @@ from pydantic import BaseModel
 backend_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(backend_dir))
 
-from ocr.pipeline import MangaOCRPipeline  # noqa: E402
 from ocr.processor import MangaOCRProcessor  # noqa: E402
 from translation.translate import MangaTranslationEngine  # noqa: E402
 from speech_bubble_detection.detector import SpeechBubbleDetector  # noqa: E402
+from inpainting.cleaner import HybridMangaCleaner  # noqa: E402
+import cv2
+import numpy as np
 
 app = FastAPI(title="Manga Translation Engine Hub")
 
@@ -263,6 +265,110 @@ def get_ocr_processor():
     if ocr_processor is None:
         ocr_processor = MangaOCRProcessor()
     return ocr_processor
+
+
+manga_cleaner = None
+
+def get_manga_cleaner():
+    global manga_cleaner
+    if manga_cleaner is None:
+        manga_cleaner = HybridMangaCleaner(
+            generative_model_id_or_path=None
+        )
+    return manga_cleaner
+
+
+class InpaintPayload(BaseModel):
+    bubbles: List[BubbleUpdateModel]
+    border_erosion: int = 2
+
+
+@app.post("/api/workspace/{workspace_id}/page/{page_id}/inpaint")
+async def run_page_inpaint(workspace_id: str, page_id: str, payload: InpaintPayload):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (
+            p
+            for p in chapter_state["pages"]
+            if str(int(p["page_id"].replace("page_", ""))) == page_id
+        ),
+        None,
+    )
+
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    filename = Path(target_page["original_url"]).name
+    image_path = session_dir / "original" / filename
+    
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Original image not found.")
+
+    img = cv2.imread(str(image_path))
+    if img is None:
+        raise HTTPException(status_code=500, detail="Failed to load image.")
+    h, w = img.shape[:2]
+
+    bubble_metadata = []
+    
+    for b in payload.bubbles:
+        if not b.points:
+            continue
+            
+        points = np.array([[pt.x, pt.y] for pt in b.points], dtype=np.int32)
+        
+        x, y, bw, bh = cv2.boundingRect(points)
+        x1, y1 = max(0, x), max(0, y)
+        x2, y2 = min(w, x + bw), min(h, y + bh)
+        
+        if x2 <= x1 or y2 <= y1:
+            continue
+            
+        mask = np.zeros((h, w), dtype=np.uint8)
+        cv2.fillPoly(mask, [points], 255)
+        
+        if payload.border_erosion > 0:
+            kernel = np.ones((5, 5), np.uint8)
+            # Match detector.py logic: dilate by 1, erode by border_erosion
+            mask = cv2.dilate(mask, kernel, iterations=1)
+            mask = cv2.erode(mask, kernel, iterations=payload.border_erosion)
+            
+        bubble_metadata.append({
+            "bubble_id": b.id,
+            "bbox": {"x1": int(x1), "y1": int(y1), "x2": int(x2), "y2": int(y2)},
+            "mask": mask,
+            "area_px": int((mask > 0).sum())
+        })
+
+    cleaner = get_manga_cleaner()
+    try:
+        cleaned_image = cleaner.generate_clean_page(str(image_path), bubble_metadata)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Inpainting failed: {str(e)}")
+
+    inpainted_dir = session_dir / "inpainted"
+    inpainted_dir.mkdir(parents=True, exist_ok=True)
+    inpainted_filename = f"{Path(filename).stem}_inpainted.png"
+    inpainted_path = inpainted_dir / inpainted_filename
+    cv2.imwrite(str(inpainted_path), cleaned_image)
+
+    inpainted_url = f"/workspaces/{workspace_id}/inpainted/{inpainted_filename}"
+    target_page["inpainted_url"] = inpainted_url
+    
+    target_page["bubbles"] = [b.model_dump() for b in payload.bubbles]
+
+    with open(state_file_path, "w", encoding="utf-8") as f:
+        json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+
+    return {"status": "success", "inpainted_url": inpainted_url}
 
 
 @app.post("/api/workspace/{workspace_id}/page/{page_id}/ocr")

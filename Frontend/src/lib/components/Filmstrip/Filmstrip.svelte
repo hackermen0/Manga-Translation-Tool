@@ -85,7 +85,7 @@
             {#if activePage}
                 <div class="relative flex flex-col items-center flex-shrink-0 ring-4 ring-accent rounded-md scale-105 opacity-100 z-10 shadow-lg cursor-grabbing">
                     <img
-                        src={`${BACKEND_URL}${activePage.inpaintedUrl || activePage.originalUrl}`}
+                        src={`${BACKEND_URL}${editorState.activeSession === 'redrawing' && activePage.inpaintedUrl ? activePage.inpaintedUrl : activePage.originalUrl}`}
                         alt={activePage.originalFilename}
                         class="w-full h-auto object-cover rounded-sm bg-white pointer-events-none"
                     />

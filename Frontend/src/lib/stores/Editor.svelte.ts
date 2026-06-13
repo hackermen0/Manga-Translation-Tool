@@ -209,6 +209,41 @@ class EditorState {
 			console.error("Failed to save bubble layout to server", e);
 		}
 	}
+
+	async runInpainting(borderErosion: number = 2) {
+		if (!this.workspaceId || !this.activePageId || !this.activePage) return;
+
+		this.isProcessing = true;
+		
+		try {
+			const response = await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${this.activePageId}/inpaint`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					bubbles: this.activePage.bubbles,
+					border_erosion: borderErosion
+				})
+			});
+
+			if (!response.ok) {
+				throw new Error(`Server responded with ${response.status}`);
+			}
+
+			const data = await response.json();
+
+			if (data.status === 'success') {
+				const page = this.activePage;
+				if (page) {
+					page.inpaintedUrl = data.inpainted_url + "?t=" + Date.now();
+				}
+			}
+		} catch (error) {
+			console.error("Inpainting failed:", error);
+			alert("Failed to run inpainting. Is your FastAPI server running?");
+		} finally {
+			this.isProcessing = false;
+		}
+	}
 }
 
 export const editorState = new EditorState();

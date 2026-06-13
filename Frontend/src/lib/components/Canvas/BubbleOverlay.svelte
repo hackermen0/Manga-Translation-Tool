@@ -20,12 +20,19 @@
 	let draftPoints = $state<{ x: number; y: number }[]>([]);
 
 	function getIntrinsicCoordinates(clientX: number, clientY: number) {
-		const rect = svgElement.getBoundingClientRect();
-		const rawX = clientX - rect.left;
-		const rawY = clientY - rect.top;
-		const scaleX = intrinsicWidth / rect.width;
-		const scaleY = intrinsicHeight / rect.height;
-		return { x: rawX * scaleX, y: rawY * scaleY };
+		const ctm = svgElement.getScreenCTM();
+		if (!ctm) {
+			const rect = svgElement.getBoundingClientRect();
+			const rawX = clientX - rect.left;
+			const rawY = clientY - rect.top;
+			const scaleX = intrinsicWidth / rect.width;
+			const scaleY = intrinsicHeight / rect.height;
+			return { x: rawX * scaleX, y: rawY * scaleY };
+		}
+		const inverseCTM = ctm.inverse();
+		const pt = new DOMPoint(clientX, clientY);
+		const svgPt = pt.matrixTransform(inverseCTM);
+		return { x: svgPt.x, y: svgPt.y };
 	}
 
 	function handleSvgClick(e: MouseEvent) {
@@ -60,7 +67,7 @@
 		e.stopPropagation();
 		e.preventDefault();
 
-		if (e.target instanceof Element) e.target.setPointerCapture(e.pointerId);
+		// if (e.target instanceof Element) e.target.setPointerCapture(e.pointerId);
 
 		editorState.activeBubbleId = bubbleId;
 
@@ -114,12 +121,11 @@
 		const bubble = editorState.activePage.bubbles[bubbleIndex];
 
 		if (isDraggingBody) {
-			const rect = svgElement.getBoundingClientRect();
-			const scaleX = intrinsicWidth / rect.width;
-			const scaleY = intrinsicHeight / rect.height;
+			const currentCoords = getIntrinsicCoordinates(e.clientX, e.clientY);
+			const previousCoords = getIntrinsicCoordinates(startX, startY);
 
-			const dx = (e.clientX - startX) * scaleX;
-			const dy = (e.clientY - startY) * scaleY;
+			const dx = currentCoords.x - previousCoords.x;
+			const dy = currentCoords.y - previousCoords.y;
 
 			startX = e.clientX;
 			startY = e.clientY;
@@ -229,6 +235,7 @@
 							e.preventDefault();
 							editorState.activeBubbleId = bubble.id;
 						} else {
+							e.preventDefault();
 							handleBodyPointerDown(e, bubble.id);
 						}
 					}}
@@ -240,18 +247,19 @@
 					}}
 				></polygon>
 
-				{#if editorState.activeSession === 'detection' && editorState.activeDetectionTool === 'edit' && (isSelected || isHovered || activePointIndex !== null)}
+				{#if editorState.activeSession === 'detection' && editorState.activeDetectionTool === 'edit' && isSelected}
 					{#each bubble.points as point, i}
 						<circle
-							cx={point.x}
-							cy={point.y}
-							r={intrinsicWidth * 0.004}
-							fill="white"
-							stroke="#22c55e"
-							stroke-width="2"
-							class="origin-center cursor-crosshair transition-transform hover:scale-150"
-							onpointerdown={(e) => handleVertexPointerDown(e, bubble.id, i)}
-						></circle>
+						cx={point.x}
+						cy={point.y}
+						r={intrinsicWidth * 0.004}
+						fill="white"
+						stroke="#22c55e"
+						stroke-width="2"
+						class="cursor-crosshair transition-transform hover:scale-150"
+						style="transform-origin: {point.x}px {point.y}px;"
+						onpointerdown={(e) => handleVertexPointerDown(e, bubble.id, i)}
+					></circle>
 					{/each}
 				{/if}
 			</g>
