@@ -49,8 +49,9 @@ class MangaTranslationEngine:
             "2. Resolve missing pronouns by analyzing the reading sequence flow.\n"
             "3. Keep translations concise so they fit comfortably inside bubble boundaries.\n"
             f"4. STRICTLY adhere to this terminology glossary mapping: {json.dumps(GLOSSARY, ensure_ascii=False)}\n"
-            "5. Return the output STRICTLY as a valid JSON array matching the exact input structure, "
-            "replacing the text with English. Do not add markdown code blocks or prose."
+            "5. The input is a JSON array of objects, each containing a 'ja_text' field.\n"
+            "6. You must return a JSON array where each object retains its 'bubble_id', and you add a new 'en_text' field containing the English translation.\n"
+            "7. Return ONLY valid JSON array. Do not add markdown code blocks (```json) or prose."
         )
 
     def translate_page_bubbles(

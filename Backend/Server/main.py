@@ -257,6 +257,46 @@ async def update_bubbles(workspace_id: str, page_id: str, payload: BubblesPayloa
     return {"status": "success"}
 
 
+class StrokeModel(BaseModel):
+    points: List[PointModel]
+    brushSize: float
+    brushColor: str = "#ffffff"
+    type: str = "eraser"
+
+class StrokesPayload(BaseModel):
+    strokes: List[StrokeModel]
+
+@app.put("/api/workspace/{workspace_id}/page/{page_id}/strokes")
+async def update_strokes(workspace_id: str, page_id: str, payload: StrokesPayload):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (
+            p
+            for p in chapter_state["pages"]
+            if str(int(p["page_id"].replace("page_", ""))) == page_id
+        ),
+        None,
+    )
+
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    target_page["redrawingStrokes"] = [s.model_dump() for s in payload.strokes]
+
+    with open(state_file_path, "w", encoding="utf-8") as f:
+        json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+
+    return {"status": "success"}
+
+
 ocr_processor = None
 
 
@@ -305,6 +345,11 @@ async def run_page_inpaint(workspace_id: str, page_id: str, payload: InpaintPayl
 
     if not target_page:
         raise HTTPException(status_code=404, detail="Page not found.")
+
+    if not target_page.get("detected", False):
+        raise HTTPException(
+            status_code=400, detail="Speech bubble detection must be run before inpainting."
+        )
 
     filename = Path(target_page["original_url"]).name
     image_path = session_dir / "original" / filename
@@ -394,6 +439,11 @@ async def run_page_ocr(workspace_id: str, page_id: str):
     if not target_page:
         raise HTTPException(status_code=404, detail="Page not found.")
 
+    if not target_page.get("detected", False):
+        raise HTTPException(
+            status_code=400, detail="Speech bubble detection must be run before OCR."
+        )
+
     filename = Path(target_page["original_url"]).name
     image_path = session_dir / "original" / filename
 
@@ -410,6 +460,103 @@ async def run_page_ocr(workspace_id: str, page_id: str):
         bid = b["id"]
         if bid in ocr_by_id:
             b["ja_text"] = ocr_by_id[bid]
+
+    target_page["bubbles"] = bubbles
+
+    with open(state_file_path, "w", encoding="utf-8") as f:
+        json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+
+    return {"status": "success", "bubbles": bubbles}
+
+
+manga_translator = None
+
+def get_manga_translator():
+    global manga_translator
+    if manga_translator is None:
+        manga_translator = MangaTranslationEngine()
+    return manga_translator
+
+
+@app.post("/api/workspace/{workspace_id}/page/{page_id}/translate")
+async def run_page_translate(workspace_id: str, page_id: str):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (
+            p
+            for p in chapter_state["pages"]
+            if str(int(p["page_id"].replace("page_", ""))) == page_id
+        ),
+        None,
+    )
+
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    if not target_page.get("detected", False):
+        raise HTTPException(
+            status_code=400, detail="Speech bubble detection must be run before translation."
+        )
+
+    bubbles = target_page.get("bubbles", [])
+    if not bubbles:
+        return {"status": "success", "bubbles": []}
+
+    has_ocr = any(b.get("ja_text", "").strip() for b in bubbles)
+    if not has_ocr:
+        raise HTTPException(
+            status_code=400, detail="OCR must be run before translation. No Japanese text found."
+        )
+
+    translation_input = []
+    for b in bubbles:
+        ja_text = b.get("ja_text", "").strip()
+
+        pts = b.get("points", [])
+        if pts:
+            xs = [p["x"] for p in pts]
+            ys = [p["y"] for p in pts]
+            bbox = {"x1": int(min(xs)), "y1": int(min(ys)), "x2": int(max(xs)), "y2": int(max(ys))}
+            area = (bbox["x2"] - bbox["x1"]) * (bbox["y2"] - bbox["y1"])
+        else:
+            bbox = {"x1": 0, "y1": 0, "x2": 0, "y2": 0}
+            area = 0
+
+        translation_input.append({
+            "bubble_id": b["id"],
+            "bbox": bbox,
+            "ja_text": ja_text if ja_text else "",
+            "area_px": area
+        })
+
+    if not translation_input:
+        return {"status": "success", "bubbles": bubbles}
+
+    translator = get_manga_translator()
+    try:
+        translated_results = translator.translate_page_bubbles(translation_input)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
+
+    translated_by_id = {}
+    for item in translated_results:
+        bid = item.get("bubble_id")
+        en_text = item.get("en_text", "")
+        if bid is not None and en_text.strip():
+            translated_by_id[bid] = en_text
+
+    for b in bubbles:
+        bid = b["id"]
+        if bid in translated_by_id:
+            b["en_text"] = translated_by_id[bid]
 
     target_page["bubbles"] = bubbles
 

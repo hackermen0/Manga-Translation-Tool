@@ -13,6 +13,7 @@
 	});
 
 	let activeBubble = $derived(bubbles[activeBubbleIndex]);
+	let hasOcrText = $derived(bubbles.some((b) => b.ja_text?.trim()));
 
 	$effect(() => {
 		if (
@@ -38,6 +39,10 @@
 
 	async function handleAutoDetect() {
 		await editorState.runOcr();
+	}
+
+	async function handleTranslate() {
+		await editorState.runTranslation();
 	}
 
 	async function handleDetectClick() {
@@ -108,14 +113,37 @@
 					variant="ghost"
 					class="border-primary-border hover:border-accent hover:text-accent hover:bg-accent/5 flex w-full flex-row gap-3 border-2"
 					onclick={handleAutoDetect}
-					disabled={editorState.isProcessing || totalBubbles === 0}
+					disabled={editorState.isProcessing ||
+						editorState.isOcrProcessing ||
+						editorState.isTranslating ||
+						totalBubbles === 0}
 				>
-					{#if editorState.isProcessing}
+					{#if editorState.isOcrProcessing}
 						<Loader2 class="text-accent h-4 w-4 animate-spin" />
 						<p class="text-accent">Running OCR...</p>
+					{:else if editorState.isTranslating}
+						<Loader2 class="text-accent h-4 w-4 animate-spin" />
+						<p class="text-accent">Translating...</p>
 					{:else}
 						<Scan class="h-4 w-4" />
 						<p>Auto-Detect Text</p>
+					{/if}
+				</Button>
+				<Button
+					variant="ghost"
+					class="border-primary-border flex w-full flex-row gap-3 border-2 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-500"
+					onclick={handleTranslate}
+					disabled={editorState.isProcessing ||
+						editorState.isOcrProcessing ||
+						editorState.isTranslating ||
+						!hasOcrText}
+				>
+					{#if editorState.isTranslating}
+						<Loader2 class="h-4 w-4 animate-spin text-blue-500" />
+						<p class="text-blue-500">Translating...</p>
+					{:else}
+						<Languages class="h-4 w-4" />
+						<p>Translate All</p>
 					{/if}
 				</Button>
 				<GlossaryButton />

@@ -6,6 +6,8 @@
 	import { tick, untrack } from 'svelte';
 	import BubbleOverlay from './BubbleOverlay.svelte';
 	import DetectionToolbar from './Toolbar/DetectionToolbar.svelte';
+	import RedrawingOverlay from './RedrawingOverlay.svelte';
+	import RedrawingToolbar from './Toolbar/RedrawingToolbar.svelte';
 
 	const BACKEND_URL = 'http://127.0.0.1:8000';
 
@@ -213,11 +215,22 @@
 						intrinsicHeight={canvasDimensions.height}
 					/>
 				{/if}
+
+				{#if editorState.activeSession === 'redrawing'}
+					<RedrawingOverlay
+						intrinsicWidth={canvasDimensions.width}
+						intrinsicHeight={canvasDimensions.height}
+					/>
+				{/if}
 			</div>
 		</div>
 
 		{#if editorState.activeSession === 'detection'}
 			<DetectionToolbar />
+		{/if}
+
+		{#if editorState.activeSession === 'redrawing'}
+			<RedrawingToolbar />
 		{/if}
 	{:else}
 		<div class="flex h-full flex-col items-center justify-center gap-3 text-black">

@@ -206,3 +206,4 @@ Backend/speech-bubble-detection-test/Masks/
 Backend/speech-bubble-detection-test/Labels/
 Backend/speech-bubble-detection-test/manga_yolo_dataset/
 manga_yolo_dataset.zip
+Backend/server/workspaces/

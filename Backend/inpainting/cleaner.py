@@ -23,6 +23,7 @@ class HybridMangaCleaner:
         self.programmatic_engine = ProgrammaticProcessor(
             variance_threshold=variance_threshold,
             fill_color=programmatic_fill_color,
+            use_median_color=True,
         )
 
         if generative_engine is not None:
@@ -72,7 +73,13 @@ class HybridMangaCleaner:
                 stats["generative"] += 1
 
             else:
-                master_canvas[mask > 0] = (255, 255, 255)
+                # Detect actual bubble background color instead of hardcoded white
+                bbox = bubble["bbox"]
+                x1, y1, x2, y2 = bbox["x1"], bbox["y1"], bbox["x2"], bbox["y2"]
+                crop_img = master_canvas[y1:y2, x1:x2]
+                crop_mask = mask[y1:y2, x1:x2]
+                bg_color = self.programmatic_engine._detect_bubble_bg_color(crop_img, crop_mask)
+                master_canvas[mask > 0] = bg_color
                 stats["fallback_fill"] += 1
 
         print(

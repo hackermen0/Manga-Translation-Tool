@@ -11,6 +11,13 @@ export interface MangaBubble {
 	en_text: string;
 }
 
+export interface RedrawingStroke {
+	points: Point[];
+	brushSize: number;
+	brushColor: string;
+	type: 'eraser' | 'restore';
+}
+
 export interface MangaPage {
 	pageId: string;
 	originalFilename: string;
@@ -18,6 +25,7 @@ export interface MangaPage {
 	inpaintedUrl: string | null;
 	bubbles: MangaBubble[];
 	detected: boolean;
+	redrawingStrokes: RedrawingStroke[];
 }
 
 class EditorState {
@@ -27,12 +35,25 @@ class EditorState {
 	activePageId = $state<string | null>(null);
 	activeBubbleId = $state<number | null>(null);
 	isProcessing = $state<boolean>(false);
+	isOcrProcessing = $state<boolean>(false);
+	isTranslating = $state<boolean>(false);
 	pages = $state<MangaPage[]>([]);
 
 	activeDetectionTool = $state<'edit' | 'drag' | 'create' | 'delete'>('edit');
+	activeRedrawingTool = $state<'pan' | 'eraser' | 'restore'>('pan');
+	brushSize = $state(20);
+	brushColor = $state('#ffffff');
 
 	setDetectionTool(tool: 'edit' | 'drag' | 'create' | 'delete') {
 		this.activeDetectionTool = tool;
+	}
+
+	setRedrawingTool(tool: 'pan' | 'eraser' | 'restore') {
+		this.activeRedrawingTool = tool;
+	}
+
+	setBrushSize(size: number) {
+		this.brushSize = size;
 	}
 
 	get activePage(): MangaPage | undefined {
@@ -57,6 +78,7 @@ class EditorState {
 			inpaintedUrl: rawPage.inpainted_url,
 			bubbles: rawPage.bubbles || [],
 			detected: rawPage.detected ?? (rawPage.bubbles && rawPage.bubbles.length > 0),
+			redrawingStrokes: rawPage.redrawingStrokes || [],
 			layers: [],
 			selectedLayerId: null
 		}));
@@ -166,7 +188,7 @@ class EditorState {
 	async runOcr() {
 		if (!this.workspaceId || !this.activePageId) return;
 
-		this.isProcessing = true;
+		this.isOcrProcessing = true;
 		
 		try {
 			const response = await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${this.activePageId}/ocr`, {
@@ -187,12 +209,51 @@ class EditorState {
 						this.activeBubbleId = page.bubbles[0].id;
 					}
 				}
+
+				// Automatically run translation after successful OCR
+				const hasJaText = data.bubbles?.some((b: any) => b.ja_text?.trim());
+				if (hasJaText) {
+					this.isOcrProcessing = false;
+					await this.runTranslation();
+					return;
+				}
 			}
 		} catch (error) {
 			console.error("Manga OCR failed:", error);
 			alert("Failed to run Manga OCR. Is your FastAPI server running?");
 		} finally {
-			this.isProcessing = false;
+			this.isOcrProcessing = false;
+		}
+	}
+
+	async runTranslation() {
+		if (!this.workspaceId || !this.activePageId || !this.activePage) return;
+
+		this.isTranslating = true;
+
+		try {
+			const response = await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${this.activePageId}/translate`, {
+				method: 'POST'
+			});
+
+			if (!response.ok) {
+				const errData = await response.json().catch(() => ({}));
+				throw new Error(errData.detail || `Server responded with ${response.status}`);
+			}
+
+			const data = await response.json();
+
+			if (data.status === 'success') {
+				const page = this.activePage;
+				if (page) {
+					page.bubbles = data.bubbles;
+				}
+			}
+		} catch (error) {
+			console.error("Translation failed:", error);
+			alert(`Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+		} finally {
+			this.isTranslating = false;
 		}
 	}
 
@@ -207,6 +268,19 @@ class EditorState {
 			});
 		} catch (e) {
 			console.error("Failed to save bubble layout to server", e);
+		}
+	}
+
+	async saveRedrawingStrokes() {
+		if (!this.workspaceId || !this.activePageId || !this.activePage) return;
+		try {
+			await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${this.activePageId}/strokes`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ strokes: this.activePage.redrawingStrokes })
+			});
+		} catch (e) {
+			console.error("Failed to save redrawing strokes to server", e);
 		}
 	}
 
