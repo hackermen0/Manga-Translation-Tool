@@ -12,6 +12,7 @@ import Layers from './components/Right Sidebar/Layers/LayersPanel.svelte';
 import TranslationPanel from './components/Right Sidebar/Translation/TranslationPanel.svelte';
 import DetectionPanel from './components/Right Sidebar/Detection/DetectionPanel.svelte';
 import RedrawingPanel from './components/Right Sidebar/Redrawing/RedrawingPanel.svelte';
+import TypesettingPanel from './components/Right Sidebar/Typesetting/TypesettingPanel.svelte';
 import RSidebar from './components/Right Sidebar/R-Sidebar.svelte';
 import { editorState } from './stores/Editor.svelte';
 import { zoomState } from './stores/Zoom.svelte';
@@ -36,6 +37,7 @@ export {
     TranslationPanel,
     DetectionPanel,
     RedrawingPanel,
+    TypesettingPanel,
     RSidebar, 
     editorState, 
     zoomState, 

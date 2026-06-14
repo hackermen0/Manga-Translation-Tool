@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ScrollArea } from 'bits-ui';
-	import { Layers, TranslationPanel, DetectionPanel, RedrawingPanel } from '$lib';
+	import { Layers, TranslationPanel, DetectionPanel, RedrawingPanel, TypesettingPanel } from '$lib';
 	import { editorState } from '$lib';
 </script>
 
@@ -16,6 +16,9 @@
 			{/if}
 			{#if editorState.activeSession === 'redrawing'}
 				<RedrawingPanel />
+			{/if}
+			{#if editorState.activeSession === 'typesetting'}
+				<TypesettingPanel />
 			{/if}
 		</div>
 	</ScrollArea.Viewport>

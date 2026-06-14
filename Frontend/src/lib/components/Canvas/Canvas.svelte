@@ -8,6 +8,7 @@
 	import DetectionToolbar from './Toolbar/DetectionToolbar.svelte';
 	import RedrawingOverlay from './RedrawingOverlay.svelte';
 	import RedrawingToolbar from './Toolbar/RedrawingToolbar.svelte';
+	import TypesettingOverlay from './TypesettingOverlay.svelte';
 
 	const BACKEND_URL = 'http://127.0.0.1:8000';
 
@@ -30,7 +31,7 @@
 		const activeSession = editorState.activeSession;
 
 		untrack(() => {
-			const showInpainted = activeSession === 'redrawing';
+			const showInpainted = activeSession === 'redrawing' || activeSession === 'typesetting';
 			const targetURL = `${BACKEND_URL}${showInpainted && inpaintedUrl ? inpaintedUrl : originalUrl}`;
 			const existingOriginalLayer = layerStateManager.layerList.find(
 				(l) => l.name === 'Original Image'
@@ -216,8 +217,15 @@
 					/>
 				{/if}
 
-				{#if editorState.activeSession === 'redrawing'}
+				{#if editorState.activeSession === 'redrawing' || editorState.activeSession === 'typesetting'}
 					<RedrawingOverlay
+						intrinsicWidth={canvasDimensions.width}
+						intrinsicHeight={canvasDimensions.height}
+					/>
+				{/if}
+
+				{#if editorState.activeSession === 'typesetting'}
+					<TypesettingOverlay
 						intrinsicWidth={canvasDimensions.width}
 						intrinsicHeight={canvasDimensions.height}
 					/>

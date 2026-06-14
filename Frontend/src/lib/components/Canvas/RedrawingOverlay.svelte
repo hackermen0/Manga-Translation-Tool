@@ -144,20 +144,18 @@
 		</clipPath>
 	</defs>
 
-	{#if editorState.activeSession === 'redrawing'}
-		{#each eraserStrokes as stroke}
-			{#if stroke.points.length > 0}
-				<polyline
-					points={stroke.points.map((p) => `${p.x},${p.y}`).join(' ')}
-					fill="none"
-					stroke={stroke.brushColor || '#ffffff'}
-					stroke-width={stroke.brushSize}
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				></polyline>
-			{/if}
-		{/each}
-	{/if}
+	{#each eraserStrokes as stroke}
+		{#if stroke.points.length > 0}
+			<polyline
+				points={stroke.points.map((p) => `${p.x},${p.y}`).join(' ')}
+				fill="none"
+				stroke={stroke.brushColor || '#ffffff'}
+				stroke-width={stroke.brushSize}
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			></polyline>
+		{/if}
+	{/each}
 
 	{#if editorState.activeSession === 'redrawing' && isDrawing && editorState.activeRedrawingTool === 'eraser' && currentStrokePoints.length > 0}
 		<polyline
@@ -170,7 +168,7 @@
 		></polyline>
 	{/if}
 
-	{#if editorState.activeSession === 'redrawing' && (restoreStrokes.length > 0 || (isDrawing && editorState.activeRedrawingTool === 'restore'))}
+	{#if restoreStrokes.length > 0 || (editorState.activeSession === 'redrawing' && isDrawing && editorState.activeRedrawingTool === 'restore')}
 		<image
 			href={originalImageUrl}
 			x="0"

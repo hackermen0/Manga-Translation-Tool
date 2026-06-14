@@ -1,4 +1,55 @@
 @import 'tailwindcss';
+
+/* CC Wild Words */
+@font-face {
+  font-family: 'CC Wild Words';
+  src: local('CC Wild Words'), local('CCWildWords'), local('Wild Words'), local('WildWords'),
+       url('/fonts/cc-wild-words.woff2') format('woff2'),
+       url('/fonts/cc-wild-words.woff') format('woff'),
+       url('/fonts/cc-wild-words.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* Anime Ace */
+@font-face {
+  font-family: 'Anime Ace';
+  src: local('Anime Ace'), local('AnimeAce'), local('Anime Ace BB'), local('AnimeAceBB'),
+       url('/fonts/animeace.woff2') format('woff2'),
+       url('/fonts/animeace.woff') format('woff'),
+       url('/fonts/animeace.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* CC Lettering Black */
+@font-face {
+  font-family: 'CC Lettering Black';
+  src: local('CC Lettering Black'), local('CCLetteringBlack'), local('Lettering Black'), local('LetteringBlack'),
+       url('/fonts/CCLetteringBlack.woff2') format('woff2'),
+       url('/fonts/CCLetteringBlack.woff') format('woff'),
+       url('/fonts/CCLetteringBlack.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* Whiz Bang */
+@font-face {
+  font-family: 'Whiz Bang';
+  src: local('Whiz Bang'), local('WhizBang'), local('Whiz Bang Quick'), local('WhizBangQuick'),
+       url('/fonts/whizbang-roman.woff2') format('woff2'),
+       url('/fonts/whizbang-roman.woff') format('woff'),
+       url('/fonts/whizbang-roman.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* Augie */
+@font-face {
+  font-family: 'Augie';
+  src: local('Augie'),
+       url('/fonts/augie.woff2') format('woff2'),
+       url('/fonts/augie.woff') format('woff'),
+       url('/fonts/augie.ttf') format('truetype');
+  font-display: swap;
+}
+
 @plugin "daisyui" {
 	themes: false;
 }

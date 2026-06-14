@@ -4,11 +4,39 @@ export interface Point {
     x: number;
     y: number;
 }
+
+export interface TypesetStyle {
+	fontSize: number;
+	fontFamily: string;
+	fontWeight: string | number;
+	fontColor: string;
+	offsetX: number;
+	offsetY: number;
+	lineHeight: number;
+	textAlign: 'center' | 'left' | 'right';
+	letterSpacing: number;
+	autoFit: boolean;
+}
+
+export const DEFAULT_TYPESET_STYLE: TypesetStyle = {
+	fontSize: 16,
+	fontFamily: 'CC Wild Words',
+	fontWeight: 'normal',
+	fontColor: '#000000',
+	offsetX: 0,
+	offsetY: 0,
+	lineHeight: 1.2,
+	textAlign: 'center',
+	letterSpacing: 0.5,
+	autoFit: true
+};
+
 export interface MangaBubble {
 	id: number;
 	points: Point[];
 	ja_text: string;
 	en_text: string;
+	typeset?: TypesetStyle;
 }
 
 export interface RedrawingStroke {
@@ -316,6 +344,30 @@ class EditorState {
 			alert("Failed to run inpainting. Is your FastAPI server running?");
 		} finally {
 			this.isProcessing = false;
+		}
+	}
+
+	initializeTypesetStyles() {
+		const page = this.activePage;
+		if (!page) return;
+
+		for (const bubble of page.bubbles) {
+			if (!bubble.typeset) {
+				bubble.typeset = { ...DEFAULT_TYPESET_STYLE };
+			}
+		}
+	}
+
+	async saveTypesetting() {
+		if (!this.workspaceId || !this.activePageId || !this.activePage) return;
+		try {
+			await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${this.activePageId}/typesetting`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ bubbles: this.activePage.bubbles })
+			});
+		} catch (e) {
+			console.error("Failed to save typesetting data to server", e);
 		}
 	}
 }

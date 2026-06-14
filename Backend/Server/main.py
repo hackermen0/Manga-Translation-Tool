@@ -50,11 +50,25 @@ class PointModel(BaseModel):
     y: float
 
 
+class TypesetStyleModel(BaseModel):
+    fontSize: float = 16
+    fontFamily: str = "Bangers"
+    fontWeight: str = "normal"
+    fontColor: str = "#000000"
+    offsetX: float = 0
+    offsetY: float = 0
+    lineHeight: float = 1.2
+    textAlign: str = "center"
+    letterSpacing: float = 0.5
+    autoFit: bool = True
+
+
 class BubbleUpdateModel(BaseModel):
     id: int
     points: List[PointModel]
     ja_text: str = ""
     en_text: str = ""
+    typeset: TypesetStyleModel | None = None
 
 
 class BubblesPayload(BaseModel):
@@ -290,6 +304,37 @@ async def update_strokes(workspace_id: str, page_id: str, payload: StrokesPayloa
         raise HTTPException(status_code=404, detail="Page not found.")
 
     target_page["redrawingStrokes"] = [s.model_dump() for s in payload.strokes]
+
+    with open(state_file_path, "w", encoding="utf-8") as f:
+        json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+
+    return {"status": "success"}
+
+
+@app.put("/api/workspace/{workspace_id}/page/{page_id}/typesetting")
+async def update_typesetting(workspace_id: str, page_id: str, payload: BubblesPayload):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (
+            p
+            for p in chapter_state["pages"]
+            if str(int(p["page_id"].replace("page_", ""))) == page_id
+        ),
+        None,
+    )
+
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    target_page["bubbles"] = [b.model_dump() for b in payload.bubbles]
 
     with open(state_file_path, "w", encoding="utf-8") as f:
         json.dump(chapter_state, f, ensure_ascii=False, indent=2)
