@@ -13,6 +13,7 @@ import TranslationPanel from './components/Right Sidebar/Translation/Translation
 import DetectionPanel from './components/Right Sidebar/Detection/DetectionPanel.svelte';
 import RedrawingPanel from './components/Right Sidebar/Redrawing/RedrawingPanel.svelte';
 import TypesettingPanel from './components/Right Sidebar/Typesetting/TypesettingPanel.svelte';
+import QualityPanel from './components/Right Sidebar/Quality/QualityPanel.svelte';
 import RSidebar from './components/Right Sidebar/R-Sidebar.svelte';
 import { editorState } from './stores/Editor.svelte';
 import { zoomState } from './stores/Zoom.svelte';
@@ -38,6 +39,7 @@ export {
     DetectionPanel,
     RedrawingPanel,
     TypesettingPanel,
+    QualityPanel,
     RSidebar, 
     editorState, 
     zoomState, 

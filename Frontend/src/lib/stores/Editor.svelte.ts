@@ -59,6 +59,12 @@ export interface MangaPage {
 class EditorState {
 	activeSession = $state('detection');
 
+	// QC visual proofing overlay states
+	qcMode = $state<'onion' | 'split'>('onion');
+	qcBlendValue = $state<number>(50);
+	qcSplitPercentage = $state<number>(50);
+	qcHighlightInpaint = $state<boolean>(false);
+
 	workspaceId = $state<string | null>(null);
 	activePageId = $state<string | null>(null);
 	activeBubbleId = $state<number | null>(null);

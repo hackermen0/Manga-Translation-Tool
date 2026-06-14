@@ -9,6 +9,7 @@
 	import RedrawingOverlay from './RedrawingOverlay.svelte';
 	import RedrawingToolbar from './Toolbar/RedrawingToolbar.svelte';
 	import TypesettingOverlay from './TypesettingOverlay.svelte';
+	import TypesettingToolbar from './Toolbar/TypesettingToolbar.svelte';
 
 	const BACKEND_URL = 'http://127.0.0.1:8000';
 
@@ -24,7 +25,6 @@
 		const activePage = editorState.activePage;
 		if (!activePage) return;
 
-		// Read activePage properties and activeSession outside untrack so Svelte tracks them reactively.
 		const inpaintedUrl = activePage.inpaintedUrl;
 		const originalUrl = activePage.originalUrl;
 		const originalFilename = activePage.originalFilename;
@@ -168,6 +168,39 @@
 		}
 	}
 
+	let isDraggingDivider = $state(false);
+
+	function handleSplitDividerPointerDown(e: PointerEvent) {
+		e.preventDefault();
+		try {
+			(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		} catch (err) {}
+		isDraggingDivider = true;
+		window.addEventListener('pointermove', handleSplitDividerPointerMove);
+		window.addEventListener('pointerup', handleSplitDividerPointerUp);
+	}
+
+	function handleSplitDividerPointerMove(e: PointerEvent) {
+		if (!isDraggingDivider || !scrollContainer) return;
+		const canvasDiv = scrollContainer.querySelector('.relative.m-auto') as HTMLElement;
+		if (!canvasDiv) return;
+		const rect = canvasDiv.getBoundingClientRect();
+		const relativeX = e.clientX - rect.left;
+		const percentage = Math.max(0, Math.min(100, (relativeX / rect.width) * 100));
+		editorState.qcSplitPercentage = percentage;
+	}
+
+	function handleSplitDividerPointerUp(e: PointerEvent) {
+		if (isDraggingDivider) {
+			try {
+				(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+			} catch (err) {}
+			isDraggingDivider = false;
+			window.removeEventListener('pointermove', handleSplitDividerPointerMove);
+			window.removeEventListener('pointerup', handleSplitDividerPointerUp);
+		}
+	}
+
 	function handleContextMenu(e: MouseEvent) {
 		e.preventDefault();
 		return false;
@@ -230,6 +263,84 @@
 						intrinsicHeight={canvasDimensions.height}
 					/>
 				{/if}
+
+				{#if editorState.activeSession === 'quality'}
+					<!-- Final View Overlay containing inpainted image and typeset text -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div
+						class="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden select-none"
+						style="
+							opacity: {editorState.qcMode === 'onion' ? editorState.qcBlendValue / 100 : 1};
+							clip-path: {editorState.qcMode === 'split' ? `polygon(${editorState.qcSplitPercentage}% 0, 100% 0, 100% 100%, ${editorState.qcSplitPercentage}% 100%)` : 'none'};
+						"
+					>
+						{#if editorState.activePage?.inpaintedUrl}
+							<img
+								src={`${BACKEND_URL}${editorState.activePage.inpaintedUrl}`}
+								alt="Inpainted Background"
+								draggable="false"
+								class="absolute top-1/2 left-1/2 max-h-full max-w-full object-contain pointer-events-none"
+								style="
+									transform: translate(-50%, -50%);
+									width: auto;
+									height: auto;
+								"
+							/>
+						{:else}
+							<!-- Fallback to original image if not inpainted yet -->
+							<img
+								src={`${BACKEND_URL}${editorState.activePage?.originalUrl}`}
+								alt="Original Background"
+								draggable="false"
+								class="absolute top-1/2 left-1/2 max-h-full max-w-full object-contain pointer-events-none"
+								style="
+									transform: translate(-50%, -50%);
+									width: auto;
+									height: auto;
+								"
+							/>
+						{/if}
+
+						<TypesettingOverlay
+							intrinsicWidth={canvasDimensions.width}
+							intrinsicHeight={canvasDimensions.height}
+							interactive={false}
+						/>
+					</div>
+
+					<!-- Split slider line divider handle -->
+					{#if editorState.qcMode === 'split'}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div
+							class="absolute top-0 bottom-0 w-1 bg-accent cursor-ew-resize z-50 flex items-center justify-center pointer-events-auto"
+							style="left: {editorState.qcSplitPercentage}%; transform: translateX(-50%);"
+							onpointerdown={handleSplitDividerPointerDown}
+						>
+							<div class="h-8 w-8 rounded-full bg-accent text-white flex items-center justify-center shadow-lg border-2 border-white select-none pointer-events-none hover:scale-110 active:scale-95 transition-transform">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-left-right"><path d="m9 7-5 5 5 5"/><path d="m15 7 5 5-5 5"/></svg>
+							</div>
+						</div>
+					{/if}
+
+					<!-- Inpainting Mask Highlight (neon pulsing overlay) -->
+					{#if editorState.qcHighlightInpaint && editorState.activePage?.bubbles}
+						<svg
+							viewBox="0 0 {canvasDimensions.width} {canvasDimensions.height}"
+							class="pointer-events-none absolute top-0 left-0 z-45 h-full w-full"
+						>
+							{#each editorState.activePage.bubbles as bubble (bubble.id)}
+								{@const pointsString = bubble.points.map((p) => `${p.x},${p.y}`).join(' ')}
+								<polygon
+									points={pointsString}
+									fill="rgba(255, 0, 92, 0.4)"
+									stroke="rgba(255, 0, 92, 0.9)"
+									stroke-width={canvasDimensions.width * 0.0025}
+									class="animate-pulse"
+								/>
+							{/each}
+						</svg>
+					{/if}
+				{/if}
 			</div>
 		</div>
 
@@ -239,6 +350,10 @@
 
 		{#if editorState.activeSession === 'redrawing'}
 			<RedrawingToolbar />
+		{/if}
+
+		{#if editorState.activeSession === 'typesetting'}
+			<TypesettingToolbar />
 		{/if}
 	{:else}
 		<div class="flex h-full flex-col items-center justify-center gap-3 text-black">

@@ -2,9 +2,10 @@
 	import { editorState } from '$lib/stores/Editor.svelte';
 	import { DEFAULT_TYPESET_STYLE } from '$lib/stores/Editor.svelte';
 	import type { TypesetStyle } from '$lib/stores/Editor.svelte';
-	let { intrinsicWidth, intrinsicHeight } = $props<{
+	let { intrinsicWidth, intrinsicHeight, interactive = true } = $props<{
 		intrinsicWidth: number;
 		intrinsicHeight: number;
+		interactive?: boolean;
 	}>();
 	let svgElement: SVGSVGElement;
 	// Auto-fit: calculate max font size that fits text inside a bounding box
@@ -134,7 +135,7 @@
 <svg
 	bind:this={svgElement}
 	viewBox="0 0 {intrinsicWidth} {intrinsicHeight}"
-	class="pointer-events-auto absolute top-0 left-0 z-50 h-full w-full"
+	class="{interactive ? 'pointer-events-auto' : 'pointer-events-none'} absolute top-0 left-0 z-50 h-full w-full"
 >
 	{#if editorState.activePage?.bubbles}
 		{#each editorState.activePage.bubbles as bubble (bubble.id)}
@@ -150,12 +151,12 @@
 				<!-- Bubble boundary outline -->
 				<polygon
 					points={pointsString}
-					fill={isSelected ? 'rgba(99, 102, 241, 0.08)' : 'transparent'}
-					stroke={isSelected ? '#6366f1' : 'rgba(156, 163, 175, 0.4)'}
-					stroke-width={intrinsicWidth * (isSelected ? 0.002 : 0.0012)}
-					stroke-dasharray={isSelected ? 'none' : `${intrinsicWidth * 0.005}`}
-					class="cursor-pointer transition-colors duration-150"
-					onpointerdown={(e) => handleBubbleClick(e, bubble.id)}
+					fill={isSelected && interactive ? 'rgba(99, 102, 241, 0.08)' : 'transparent'}
+					stroke={isSelected && interactive ? '#6366f1' : 'rgba(156, 163, 175, 0.4)'}
+					stroke-width={intrinsicWidth * (isSelected && interactive ? 0.002 : 0.0012)}
+					stroke-dasharray={isSelected && interactive ? 'none' : `${intrinsicWidth * 0.005}`}
+					class="{interactive ? 'cursor-pointer' : ''} transition-colors duration-150"
+					onpointerdown={interactive ? (e) => handleBubbleClick(e, bubble.id) : null}
 				></polygon>
 				<!-- Text rendered inside the bubble via foreignObject -->
 				{#if bubble.en_text?.trim()}
@@ -170,12 +171,12 @@
 								align-items: center;
 								justify-content: center;
 								overflow: hidden;
-								pointer-events: auto;
-								cursor: move;
+								pointer-events: {interactive ? 'auto' : 'none'};
+								cursor: {interactive ? 'move' : 'default'};
 								padding: {padding}px;
 								box-sizing: border-box;
 							"
-							onpointerdown={(e) => handleTextPointerDown(e, bubble.id)}
+							onpointerdown={interactive ? (e) => handleTextPointerDown(e, bubble.id) : null}
 						>
 							<div
 								class="typeset-text"
