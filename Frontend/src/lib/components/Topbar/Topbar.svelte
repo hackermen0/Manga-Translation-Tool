@@ -12,7 +12,8 @@
 		Undo,
 		Redo,
 		Rocket,
-		ScanText 
+		ScanText,
+		Loader2
 	} from '@lucide/svelte';
 
 	const sections = [
@@ -22,6 +23,24 @@
 		{ id: 'typesetting', name: 'Typesetting', icon: Type },
 		{ id: 'quality', name: 'Quality Checking', icon: CheckCircle }
 	];
+
+	let isExportingAll = $state(false);
+
+	async function handleExportAll() {
+		if (!editorState.exportAllHandler) {
+			alert('Export functionality is not ready yet. Please ensure the canvas has loaded the page.');
+			return;
+		}
+		isExportingAll = true;
+		try {
+			await editorState.exportAllHandler();
+		} catch (error) {
+			console.error('Export all failed:', error);
+			alert('Failed to export all pages: ' + (error instanceof Error ? error.message : String(error)));
+		} finally {
+			isExportingAll = false;
+		}
+	}
 </script>
 
 <div class="bg-white px-4 py-2">
@@ -30,7 +49,20 @@
 			<div class="flex items-center space-x-2">
 				<Open buttonName="Open" variant="ghost" size="sm" icon={FolderOpen}/>
 				<Button variant="ghost" size="sm" icon={Save}>Save</Button>
-				<Button variant="ghost" size="sm" icon={Rocket}>Export</Button>
+				<Button
+					variant="ghost"
+					size="sm"
+					onclick={handleExportAll}
+					disabled={isExportingAll}
+				>
+					{#if isExportingAll}
+						<Loader2 class="h-4 w-4 animate-spin shrink-0" />
+						Exporting...
+					{:else}
+						<Rocket class="h-4 w-4 shrink-0" />
+						Export
+					{/if}
+				</Button>
 			</div>
 
 			<Separator.Root orientation="vertical" class="h-6 w-px shrink-0 bg-gray-200" />

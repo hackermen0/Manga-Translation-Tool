@@ -1,9 +1,27 @@
 <script lang="ts">
-	import { CheckCircle } from '@lucide/svelte';
-	import { editorState } from '$lib/stores/Editor.svelte';
+	import { CheckCircle, Loader2, Download } from '@lucide/svelte';
+	import { editorState, Button } from '$lib';
 	import { Separator } from 'bits-ui';
 
 	let bubbles = $derived(editorState.activePage?.bubbles || []);
+
+	let isExporting = $state(false);
+
+	async function handleExport() {
+		if (!editorState.exportHandler) {
+			alert('Export functionality is not ready yet. Please ensure the canvas has loaded the page.');
+			return;
+		}
+		isExporting = true;
+		try {
+			await editorState.exportHandler();
+		} catch (error) {
+			console.error('Export failed:', error);
+			alert('Failed to export: ' + (error instanceof Error ? error.message : String(error)));
+		} finally {
+			isExporting = false;
+		}
+	}
 </script>
 
 <div
@@ -148,6 +166,26 @@
 					<span class="font-medium text-accent font-bold">{bubbles.length}</span>
 				</div>
 			</div>
+		</div>
+
+		<Separator.Root orientation="horizontal" class="h-[2px] w-full shrink-0 bg-gray-200" />
+
+		<!-- Export Action Button -->
+		<div class="px-1">
+			<Button
+				variant="secondary"
+				class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md font-semibold text-black bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/85 transition-colors shadow-sm disabled:opacity-50 select-none cursor-pointer"
+				onclick={handleExport}
+				disabled={isExporting}
+			>
+				{#if isExporting}
+					<Loader2 class="h-4 w-4 animate-spin shrink-0" />
+					Exporting...
+				{:else}
+					<Download class="h-4 w-4 shrink-0" />
+					Export Page
+				{/if}
+			</Button>
 		</div>
 	</div>
 </div>

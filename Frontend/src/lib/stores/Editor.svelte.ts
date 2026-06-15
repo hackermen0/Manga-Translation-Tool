@@ -16,6 +16,10 @@ export interface TypesetStyle {
 	textAlign: 'center' | 'left' | 'right';
 	letterSpacing: number;
 	autoFit: boolean;
+	fontStyle?: 'normal' | 'italic';
+	writingMode?: 'horizontal' | 'vertical';
+	outline?: boolean;
+	outlineColor?: string;
 }
 
 export const DEFAULT_TYPESET_STYLE: TypesetStyle = {
@@ -28,7 +32,11 @@ export const DEFAULT_TYPESET_STYLE: TypesetStyle = {
 	lineHeight: 1.2,
 	textAlign: 'center',
 	letterSpacing: 0.5,
-	autoFit: true
+	autoFit: true,
+	fontStyle: 'normal',
+	writingMode: 'horizontal',
+	outline: false,
+	outlineColor: '#ffffff'
 };
 
 export interface MangaBubble {
@@ -64,6 +72,8 @@ class EditorState {
 	qcBlendValue = $state<number>(50);
 	qcSplitPercentage = $state<number>(50);
 	qcHighlightInpaint = $state<boolean>(false);
+	exportHandler = $state<(() => Promise<void>) | null>(null);
+	exportAllHandler = $state<(() => Promise<void>) | null>(null);
 
 	workspaceId = $state<string | null>(null);
 	activePageId = $state<string | null>(null);
@@ -75,6 +85,7 @@ class EditorState {
 
 	activeDetectionTool = $state<'edit' | 'drag' | 'create' | 'delete'>('edit');
 	activeRedrawingTool = $state<'pan' | 'eraser' | 'restore'>('pan');
+	activeTypesettingTool = $state<'select' | 'drag'>('select');
 	brushSize = $state(20);
 	brushColor = $state('#ffffff');
 
@@ -84,6 +95,10 @@ class EditorState {
 
 	setRedrawingTool(tool: 'pan' | 'eraser' | 'restore') {
 		this.activeRedrawingTool = tool;
+	}
+
+	setTypesettingTool(tool: 'select' | 'drag') {
+		this.activeTypesettingTool = tool;
 	}
 
 	setBrushSize(size: number) {
@@ -163,6 +178,41 @@ class EditorState {
             }
         }
     }
+
+	async deletePage(pageId: string) {
+		if (!this.workspaceId) return;
+		try {
+			const response = await fetch(`http://127.0.0.1:8000/api/workspace/${this.workspaceId}/page/${pageId}`, {
+				method: 'DELETE'
+			});
+			if (!response.ok) {
+				throw new Error(`Server responded with ${response.status}`);
+			}
+			const data = await response.json();
+			if (data.status === 'success') {
+				const index = this.pages.findIndex(p => p.pageId === pageId);
+				if (index !== -1) {
+					this.pages.splice(index, 1);
+					layerStateManager.deletePage(pageId);
+					
+					// If the deleted page was active, activate another page
+					if (this.activePageId === pageId) {
+						if (this.pages.length > 0) {
+							const nextActiveIndex = Math.min(index, this.pages.length - 1);
+							this.setActivePage(this.pages[nextActiveIndex].pageId);
+						} else {
+							this.activePageId = null;
+							this.activeBubbleId = null;
+							layerStateManager.loadPage(""); // Clear active layers
+						}
+					}
+				}
+			}
+		} catch (error) {
+			console.error("Delete page failed:", error);
+			alert("Failed to delete page. Is your FastAPI server running?");
+		}
+	}
 
 	loadDummyBubbles() {
 		const page = this.activePage;

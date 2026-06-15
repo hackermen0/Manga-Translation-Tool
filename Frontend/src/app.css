@@ -4,8 +4,6 @@
 @font-face {
   font-family: 'CC Wild Words';
   src: local('CC Wild Words'), local('CCWildWords'), local('Wild Words'), local('WildWords'),
-       url('/fonts/cc-wild-words.woff2') format('woff2'),
-       url('/fonts/cc-wild-words.woff') format('woff'),
        url('/fonts/cc-wild-words.ttf') format('truetype');
   font-display: swap;
 }
@@ -14,19 +12,174 @@
 @font-face {
   font-family: 'Anime Ace';
   src: local('Anime Ace'), local('AnimeAce'), local('Anime Ace BB'), local('AnimeAceBB'),
-       url('/fonts/animeace.woff2') format('woff2'),
-       url('/fonts/animeace.woff') format('woff'),
        url('/fonts/animeace.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace';
+  src: url('/fonts/animeace_b.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace';
+  src: url('/fonts/animeace_i.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Manga Temple */
+@font-face {
+  font-family: 'Manga Temple';
+  src: url('/fonts/mangat.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Manga Temple';
+  src: url('/fonts/mangatb.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Manga Temple';
+  src: url('/fonts/mangati.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Komika Hands */
+@font-face {
+  font-family: 'Komika Hands';
+  src: url('/fonts/KOMIKAH_.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Komika Hands';
+  src: url('/fonts/KOMIKAHB.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Komika Hands';
+  src: url('/fonts/KOMIKHI_.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Komika Hands';
+  src: url('/fonts/KOMIKHBI.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Komika Axis */
+@font-face {
+  font-family: 'Komika Axis';
+  src: url('/fonts/KOMIKAX_.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Creative Block BB */
+@font-face {
+  font-family: 'Creative Block BB';
+  src: url('/fonts/CREABBRG.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Creative Block BB';
+  src: url('/fonts/CREABBB_.TTF') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Badaboom BB */
+@font-face {
+  font-family: 'Badaboom BB';
+  src: url('/fonts/BADABB__.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Damn Noisy Kids */
+@font-face {
+  font-family: 'Damn Noisy Kids';
+  src: url('/fonts/dnk.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Feast of Flesh BB */
+@font-face {
+  font-family: 'Feast of Flesh BB';
+  src: url('/fonts/FEASFBRG.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Feast of Flesh BB';
+  src: url('/fonts/FEASFBI_.TTF') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Catholic School Girls */
+@font-face {
+  font-family: 'Catholic School Girls';
+  src: url('/fonts/CATHSGBR.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Kid Kosmic */
+@font-face {
+  font-family: 'Kid Kosmic';
+  src: url('/fonts/kidkosmic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Kid Kosmic';
+  src: url('/fonts/kidkosmicb.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Kid Kosmic';
+  src: url('/fonts/kidkosmici.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
   font-display: swap;
 }
 
 /* CC Lettering Black */
 @font-face {
   font-family: 'CC Lettering Black';
-  src: local('CC Lettering Black'), local('CCLetteringBlack'), local('Lettering Black'), local('LetteringBlack'),
-       url('/fonts/CCLetteringBlack.woff2') format('woff2'),
-       url('/fonts/CCLetteringBlack.woff') format('woff'),
-       url('/fonts/CCLetteringBlack.ttf') format('truetype');
+  src: local('CC Lettering Black'), local('CCLetteringBlack'), local('Lettering Black'), local('LetteringBlack');
   font-display: swap;
 }
 
@@ -34,8 +187,6 @@
 @font-face {
   font-family: 'Whiz Bang';
   src: local('Whiz Bang'), local('WhizBang'), local('Whiz Bang Quick'), local('WhizBangQuick'),
-       url('/fonts/whizbang-roman.woff2') format('woff2'),
-       url('/fonts/whizbang-roman.woff') format('woff'),
        url('/fonts/whizbang-roman.ttf') format('truetype');
   font-display: swap;
 }
@@ -44,8 +195,6 @@
 @font-face {
   font-family: 'Augie';
   src: local('Augie'),
-       url('/fonts/augie.woff2') format('woff2'),
-       url('/fonts/augie.woff') format('woff'),
        url('/fonts/augie.ttf') format('truetype');
   font-display: swap;
 }

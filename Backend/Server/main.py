@@ -5,9 +5,13 @@ import os
 import json
 import uuid
 from typing import List
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI, UploadFile, File, HTTPException
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
+# pyrefly: ignore [missing-import]
 from fastapi.staticfiles import StaticFiles
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel
 
 backend_dir = Path(__file__).resolve().parent.parent
@@ -17,7 +21,9 @@ from ocr.processor import MangaOCRProcessor  # noqa: E402
 from translation.translate import MangaTranslationEngine  # noqa: E402
 from speech_bubble_detection.detector import SpeechBubbleDetector  # noqa: E402
 from inpainting.cleaner import HybridMangaCleaner  # noqa: E402
+# pyrefly: ignore [missing-import]
 import cv2
+# pyrefly: ignore [missing-import]
 import numpy as np
 
 app = FastAPI(title="Manga Translation Engine Hub")
@@ -38,7 +44,28 @@ WORKSPACES_DIR.mkdir(exist_ok=True)
 
 print(WORKSPACES_DIR)
 
-app.mount("/workspaces", StaticFiles(directory=str(WORKSPACES_DIR)), name="workspaces")
+class SimpleCORSMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                headers = [h for h in headers if h[0].lower() not in (b"access-control-allow-origin", b"access-control-allow-methods", b"access-control-allow-headers")]
+                headers.append((b"access-control-allow-origin", b"*"))
+                headers.append((b"access-control-allow-methods", b"*"))
+                headers.append((b"access-control-allow-headers", b"*"))
+                message["headers"] = headers
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+app.mount("/workspaces", SimpleCORSMiddleware(StaticFiles(directory=str(WORKSPACES_DIR))), name="workspaces")
 
 DETECTOR_WEIGHTS = str(BASE_DIR.parent / "models" / "bubble_segmenter_best.pt")
 print(DETECTOR_WEIGHTS)
@@ -53,7 +80,7 @@ class PointModel(BaseModel):
 class TypesetStyleModel(BaseModel):
     fontSize: float = 16
     fontFamily: str = "Bangers"
-    fontWeight: str = "normal"
+    fontWeight: str | int = "normal"
     fontColor: str = "#000000"
     offsetX: float = 0
     offsetY: float = 0
@@ -461,6 +488,69 @@ async def run_page_inpaint(workspace_id: str, page_id: str, payload: InpaintPayl
     return {"status": "success", "inpainted_url": inpainted_url}
 
 
+@app.get("/api/workspace/{workspace_id}/page/{page_id}/original-base64")
+async def get_original_base64(workspace_id: str, page_id: str):
+    import base64
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (p for p in chapter_state["pages"] if str(int(p["page_id"].replace("page_", ""))) == page_id),
+        None,
+    )
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    filename = Path(target_page["original_url"]).name
+    image_path = session_dir / "original" / filename
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Original image not found.")
+
+    with open(image_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+    return {"status": "success", "base64": f"data:image/png;base64,{encoded_string}"}
+
+
+@app.get("/api/workspace/{workspace_id}/page/{page_id}/inpainted-base64")
+async def get_inpainted_base64(workspace_id: str, page_id: str):
+    import base64
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (p for p in chapter_state["pages"] if str(int(p["page_id"].replace("page_", ""))) == page_id),
+        None,
+    )
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    if not target_page.get("inpainted_url"):
+        filename = Path(target_page["original_url"]).name
+        image_path = session_dir / "original" / filename
+    else:
+        filename = Path(target_page["inpainted_url"]).name
+        image_path = session_dir / "inpainted" / filename
+
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found.")
+
+    with open(image_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+    return {"status": "success", "base64": f"data:image/png;base64,{encoded_string}"}
+
+
 @app.post("/api/workspace/{workspace_id}/page/{page_id}/ocr")
 async def run_page_ocr(workspace_id: str, page_id: str):
     session_dir = WORKSPACES_DIR / workspace_id
@@ -611,7 +701,66 @@ async def run_page_translate(workspace_id: str, page_id: str):
     return {"status": "success", "bubbles": bubbles}
 
 
+@app.delete("/api/workspace/{workspace_id}/page/{page_id}")
+async def delete_page(workspace_id: str, page_id: str):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    try:
+        with open(state_file_path, "r", encoding="utf-8") as f:
+            chapter_state = json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read workspace state: {str(e)}")
+
+    target_index = -1
+    for index, p in enumerate(chapter_state["pages"]):
+        try:
+            curr_id = str(int(p["page_id"].replace("page_", "")))
+        except ValueError:
+            curr_id = p["page_id"]
+        
+        if curr_id == page_id:
+            target_index = index
+            break
+
+    if target_index == -1:
+        raise HTTPException(status_code=404, detail="Page not found in workspace.")
+
+    deleted_page = chapter_state["pages"].pop(target_index)
+
+    # Clean up associated files from disk
+    try:
+        original_url = deleted_page.get("original_url")
+        if original_url:
+            filename = Path(original_url).name
+            original_file_path = session_dir / "original" / filename
+            if original_file_path.exists():
+                original_file_path.unlink()
+
+        inpainted_url = deleted_page.get("inpainted_url")
+        if inpainted_url:
+            inpainted_url_clean = inpainted_url.split("?")[0]
+            inpainted_filename = Path(inpainted_url_clean).name
+            inpainted_file_path = session_dir / "inpainted" / inpainted_filename
+            if inpainted_file_path.exists():
+                inpainted_file_path.unlink()
+    except Exception as e:
+        print(f"Error deleting page files from disk: {e}")
+
+    try:
+        with open(state_file_path, "w", encoding="utf-8") as f:
+            json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save updated workspace state: {str(e)}")
+
+    return {"status": "success", "message": f"Page {page_id} deleted successfully."}
+
+
 if __name__ == "__main__":
+    # pyrefly: ignore [missing-import]
     import uvicorn
 
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

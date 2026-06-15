@@ -42,6 +42,12 @@ class LayerStateManager {
         }
     }
 
+    deletePage(pageId: string) {
+        if (this.pageCache[pageId]) {
+            delete this.pageCache[pageId];
+        }
+    }
+
     initializeLayer(id: string, name: string, type: LayerType, initialState?: Partial<LayerState>) {
         if (!this.layers[id]) {
             this.layers[id] = {

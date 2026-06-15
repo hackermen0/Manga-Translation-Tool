@@ -30,9 +30,11 @@
 <div>
     <Popover.Root>
 			<Popover.Trigger>
-                    <Button variant={"ghost"}>
-                        <Settings/>
-                    </Button>
+				{#snippet child({ props })}
+					<Button {...props} variant={"ghost"}>
+						<Settings/>
+					</Button>
+				{/snippet}
     		</Popover.Trigger>
             <Popover.Portal>
                 <Popover.Content class="bg-background-light border-2 border-primary-border z-10 p-4 rounded-lg min-w-80">
@@ -45,11 +47,13 @@
                             <span class="font-semibold">Appearance</span>
                             <div>
                                 <Popover.Root>
-                                    <Popover.Trigger class="w-full">
-                                        <Button class="flex flex-row justify-between w-full m-0" variant={"ghost"}>
-                                            <span>{capitalize(themeState.appearance)}</span> 
-                                            <ChevronRight/>
-                                        </Button>
+                                    <Popover.Trigger>
+                                        {#snippet child({ props })}
+                                            <Button {...props} class="flex flex-row justify-between w-full m-0" variant={"ghost"}>
+                                                <span>{capitalize(themeState.appearance)}</span> 
+                                                <ChevronRight/>
+                                            </Button>
+                                        {/snippet}
                                     </Popover.Trigger>
                                     <Popover.Portal>
                                         <Popover.Content class="bg-background-light border-2 border-primary-border z-10 p-4 w-full rounded-lg translate-x-54 translate-y-24">
@@ -67,11 +71,13 @@
                         <div class="flex flex-col gap-2 w-full">
                             <span class="font-semibold">Theme</span>
                                 <Popover.Root>
-                                        <Popover.Trigger class="w-full">
-                                            <Button class="flex flex-row justify-between w-full m-0" variant={"ghost"}>
-                                                <div class={`w-8 h-8 rounded-full border-2 border-gray-300 ${themeColorMap[themeState.theme as keyof typeof themeColorMap]}`}></div>
-                                                <ChevronRight/>
-                                            </Button>
+                                        <Popover.Trigger>
+                                            {#snippet child({ props })}
+                                                <Button {...props} class="flex flex-row justify-between w-full m-0" variant={"ghost"}>
+                                                    <div class={`w-8 h-8 rounded-full border-2 border-gray-300 ${themeColorMap[themeState.theme as keyof typeof themeColorMap]}`}></div>
+                                                    <ChevronRight/>
+                                                </Button>
+                                            {/snippet}
                                         </Popover.Trigger>
                                         <Popover.Portal>
                                             <Popover.Content class="bg-background-light border-2 border-primary-border z-10 p-4 w-full rounded-lg translate-x-72 translate-y-24">

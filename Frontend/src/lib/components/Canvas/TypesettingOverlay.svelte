@@ -22,13 +22,18 @@
 		const availW = boxWidth - padding * 2;
 		const availH = boxHeight - padding * 2;
 		if (availW <= 0 || availH <= 0) return 8;
+
+		const isVertical = style.writingMode === 'vertical';
+		const limitLength = isVertical ? availH : availW;
+		const limitThickness = isVertical ? availW : availH;
+
 		let lo = 6;
 		let hi = Math.min(boxWidth, boxHeight);
 		let bestSize = lo;
 		for (let iter = 0; iter < 20; iter++) {
 			const mid = Math.floor((lo + hi) / 2);
 			if (mid <= lo) break;
-			const fontStr = `${style.fontWeight === 'bold' ? 'bold ' : ''}${mid}px ${style.fontFamily}, sans-serif`;
+			const fontStr = `${style.fontStyle === 'italic' ? 'italic ' : ''}${style.fontWeight === 'bold' ? 'bold ' : ''}${mid}px "${style.fontFamily}", sans-serif`;
 			ctx.font = fontStr;
 			// Word-wrap the text
 			const words = text.split(/\s+/);
@@ -37,7 +42,7 @@
 			for (const word of words) {
 				const testLine = currentLine ? `${currentLine} ${word}` : word;
 				const metrics = ctx.measureText(testLine);
-				if (metrics.width > availW && currentLine) {
+				if (metrics.width > limitLength && currentLine) {
 					lines.push(currentLine);
 					currentLine = word;
 				} else {
@@ -45,8 +50,8 @@
 				}
 			}
 			if (currentLine) lines.push(currentLine);
-			const totalHeight = lines.length * mid * style.lineHeight;
-			if (totalHeight <= availH && lines.every((l) => ctx.measureText(l).width <= availW)) {
+			const totalThickness = lines.length * mid * style.lineHeight;
+			if (totalThickness <= limitThickness && lines.every((l) => ctx.measureText(l).width <= limitLength)) {
 				bestSize = mid;
 				lo = mid;
 			} else {
@@ -98,14 +103,22 @@
 		e.stopPropagation();
 		e.preventDefault();
 		editorState.activeBubbleId = bubbleId;
+
+		if (editorState.activeTypesettingTool !== 'drag') return;
+
 		const bubble = editorState.activePage?.bubbles.find((b) => b.id === bubbleId);
 		if (!bubble) return;
+
+		if (!bubble.typeset) {
+			bubble.typeset = { ...DEFAULT_TYPESET_STYLE };
+		}
+
 		dragBubbleId = bubbleId;
 		const coords = getIntrinsicCoordinates(e.clientX, e.clientY);
 		dragStartX = coords.x;
 		dragStartY = coords.y;
-		dragStartOffsetX = bubble.typeset?.offsetX ?? 0;
-		dragStartOffsetY = bubble.typeset?.offsetY ?? 0;
+		dragStartOffsetX = bubble.typeset.offsetX ?? 0;
+		dragStartOffsetY = bubble.typeset.offsetY ?? 0;
 		window.addEventListener('pointermove', handleDragMove);
 		window.addEventListener('pointerup', handleDragUp);
 	}
@@ -134,8 +147,9 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <svg
 	bind:this={svgElement}
+	data-typesetting-overlay-interactive={interactive}
 	viewBox="0 0 {intrinsicWidth} {intrinsicHeight}"
-	class="{interactive ? 'pointer-events-auto' : 'pointer-events-none'} absolute top-0 left-0 z-50 h-full w-full"
+	class="typesetting-overlay-svg {interactive ? 'pointer-events-auto' : 'pointer-events-none'} absolute top-0 left-0 z-50 h-full w-full"
 >
 	{#if editorState.activePage?.bubbles}
 		{#each editorState.activePage.bubbles as bubble (bubble.id)}
@@ -160,7 +174,12 @@
 				></polygon>
 				<!-- Text rendered inside the bubble via foreignObject -->
 				{#if bubble.en_text?.trim()}
-					<foreignObject x={bbox.x} y={bbox.y} width={bbox.width} height={bbox.height}>
+					<foreignObject 
+						x={bbox.x + (style.offsetX ?? 0)} 
+						y={bbox.y + (style.offsetY ?? 0)} 
+						width={bbox.width} 
+						height={bbox.height}
+					>
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class="typeset-text-container"
@@ -172,9 +191,15 @@
 								justify-content: center;
 								overflow: hidden;
 								pointer-events: {interactive ? 'auto' : 'none'};
-								cursor: {interactive ? 'move' : 'default'};
+								cursor: {interactive ? (editorState.activeTypesettingTool === 'drag' ? 'move' : 'pointer') : 'default'};
 								padding: {padding}px;
 								box-sizing: border-box;
+								border: {editorState.activeTypesettingTool === 'drag' 
+									? (isSelected ? '1.5px dashed #6366f1' : '1px dashed rgba(156, 163, 175, 0.5)') 
+									: '1px dashed transparent'};
+								border-radius: 4px;
+								background-color: {isSelected && editorState.activeTypesettingTool === 'drag' ? 'rgba(99, 102, 241, 0.04)' : 'transparent'};
+								transition: border-color 0.15s, background-color 0.15s;
 							"
 							onpointerdown={interactive ? (e) => handleTextPointerDown(e, bubble.id) : null}
 						>
@@ -184,6 +209,9 @@
 									font-family: '{style.fontFamily}', 'Comic Neue', 'Comic Sans MS', sans-serif;
 									font-size: {computedFontSize}px;
 									font-weight: {style.fontWeight};
+									font-style: {style.fontStyle ?? 'normal'};
+									writing-mode: {style.writingMode === 'vertical' ? 'vertical-rl' : 'horizontal-tb'};
+									text-orientation: {style.writingMode === 'vertical' ? 'upright' : 'mixed'};
 									color: {style.fontColor};
 									text-align: {style.textAlign};
 									line-height: {style.lineHeight};
@@ -191,10 +219,10 @@
 									word-break: break-word;
 									overflow-wrap: break-word;
 									white-space: pre-wrap;
-									transform: translate({style.offsetX}px, {style.offsetY}px);
 									user-select: none;
 									width: 100%;
 									text-transform: uppercase;
+									text-shadow: {style.outline ? `-1px -1px 0 ${style.outlineColor ?? '#ffffff'}, 1px -1px 0 ${style.outlineColor ?? '#ffffff'}, -1px 1px 0 ${style.outlineColor ?? '#ffffff'}, 1px 1px 0 ${style.outlineColor ?? '#ffffff'}, 0 0 4px ${style.outlineColor ?? '#ffffff'}, 0 0 4px ${style.outlineColor ?? '#ffffff'}` : 'none'};
 								"
 							>
 								{bubble.en_text}

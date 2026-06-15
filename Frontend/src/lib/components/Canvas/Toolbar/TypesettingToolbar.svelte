@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Scissors } from '@lucide/svelte';
-	import { editorState } from '$lib/stores/Editor.svelte';
+	import { Scissors, MousePointer2, Move } from '@lucide/svelte';
+	import { editorState, DEFAULT_TYPESET_STYLE } from '$lib/stores/Editor.svelte';
 	import type { MangaBubble, Point } from '$lib/stores/Editor.svelte';
 
 	let isSplitting = $state(false);
@@ -95,7 +95,7 @@
 			points: points1,
 			ja_text: activeBubble.ja_text,
 			en_text: splitText1,
-			typeset: activeBubble.typeset ? { ...activeBubble.typeset } : undefined
+			typeset: activeBubble.typeset ? { ...activeBubble.typeset } : { ...DEFAULT_TYPESET_STYLE }
 		};
 
 		const bubble2: MangaBubble = {
@@ -103,7 +103,7 @@
 			points: points2,
 			ja_text: '',
 			en_text: splitText2,
-			typeset: activeBubble.typeset ? { ...activeBubble.typeset } : undefined
+			typeset: activeBubble.typeset ? { ...activeBubble.typeset } : { ...DEFAULT_TYPESET_STYLE }
 		};
 
 		const index = page.bubbles.findIndex((b) => b.id === originalId);
@@ -186,6 +186,24 @@
 
 		<!-- Main Toolbar Bar -->
 		<div class="bg-white px-3 py-2 rounded-xl shadow-2xl border border-gray-200 flex flex-row items-center gap-2">
+			<button 
+				onclick={() => editorState.setTypesettingTool('select')}
+				class="p-2 rounded-lg transition-colors {editorState.activeTypesettingTool === 'select' ? 'bg-accent/15 text-accent' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}"
+				title="Select Bubble / Edit Text"
+			>
+				<MousePointer2 class="w-5 h-5" />
+			</button>
+
+			<button 
+				onclick={() => editorState.setTypesettingTool('drag')}
+				class="p-2 rounded-lg transition-colors {editorState.activeTypesettingTool === 'drag' ? 'bg-accent/15 text-accent' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}"
+				title="Move Text Position"
+			>
+				<Move class="w-5 h-5" />
+			</button>
+
+			<div class="w-px h-6 bg-gray-300 my-auto mx-1"></div>
+
 			<button 
 				onclick={handleStartSplit}
 				class="p-2 rounded-lg transition-colors flex items-center gap-2 {isSplitting ? 'bg-accent/15 text-accent' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}"

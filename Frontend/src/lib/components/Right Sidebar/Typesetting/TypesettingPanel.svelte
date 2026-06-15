@@ -10,18 +10,29 @@
 		AlignCenter,
 		AlignRight,
 		Bold,
-		Move
+		Move,
+		Italic
 	} from '@lucide/svelte';
 	import { Button, editorState } from '$lib';
 	import { DEFAULT_TYPESET_STYLE } from '$lib/stores/Editor.svelte';
 	import { Separator } from 'bits-ui';
 	let fontOptions = $state([
 		{ label: 'CC Wild Words', value: 'CC Wild Words', styleType: 'Comic Serif/Sans Mix', purpose: 'Standard Dialogue', tone: 'Neutral / Narrative' },
+		{ label: 'Manga Temple', value: 'Manga Temple', styleType: 'Classic Manga Sans', purpose: 'Standard Dialogue', tone: 'Traditional / Narrative' },
 		{ label: 'Anime Ace', value: 'Anime Ace', styleType: 'Clean Comic Sans', purpose: 'Budget Standard Speech', tone: 'Casual / Friendly' },
+		{ label: 'Komika Hands', value: 'Komika Hands', styleType: 'Clean Dialogue Sans', purpose: 'Modern Speech / Thoughts', tone: 'Friendly / Energetic' },
+		{ label: 'Komika Axis', value: 'Komika Axis', styleType: 'Heavy Rounded Comic', purpose: 'Exclamations / Main Dialogue', tone: 'Impactful / Confident' },
+		{ label: 'Creative Block BB', value: 'Creative Block BB', styleType: 'Square Comic Sans', purpose: 'Heroic Dialogue / Main Story', tone: 'Bold / Energetic' },
+		{ label: 'Badaboom BB', value: 'Badaboom BB', styleType: 'Action SFX Display', purpose: 'Screaming / Sound Effects', tone: 'Excited / High Impact' },
+		{ label: 'Damn Noisy Kids', value: 'Damn Noisy Kids', styleType: 'Jittery SFX', purpose: 'Angry Shouting / SFX', tone: 'Aggressive / Loud' },
+		{ label: 'Feast of Flesh BB', value: 'Feast of Flesh BB', styleType: 'Distressed Horror Display', purpose: 'Demons / Threatening Speech / SFX', tone: 'Scary / Creepy / Menacing' },
 		{ label: 'CC Lettering Black', value: 'CC Lettering Black', styleType: 'Heavy Gothic/Bold', purpose: 'Villains / Dark Artifacts', tone: 'Menacing / Authoritative' },
 		{ label: 'Whiz Bang', value: 'Whiz Bang', styleType: 'Jittery / Angular', purpose: 'Screaming / Shock', tone: 'Panicked / High Energy' },
+		{ label: 'Catholic School Girls', value: 'Catholic School Girls', styleType: 'Chalkboard Handwriting', purpose: 'Side Notes / Whispers / Flashbacks', tone: 'Cute / Playful' },
+		{ label: 'Kid Kosmic', value: 'Kid Kosmic', styleType: 'Blocky Comic Handwriting', purpose: 'Internal Thoughts / Child Characters', tone: 'Whimsical / Innocent' },
 		{ label: 'Augie', value: 'Augie', styleType: 'Handwriting', purpose: 'Internal Monologue', tone: 'Intimate / Reflective' }
 	]);
+
 	let bubbles = $derived(editorState.activePage?.bubbles || []);
 	let totalBubbles = $derived(bubbles.length);
 	let activeBubbleIndex = $derived.by(() => {
@@ -366,12 +377,96 @@
 						</div>
 					</div>
 				</div>
-				<!-- Text Alignment -->
-				<div class="flex flex-col gap-2 px-1">
-					<p class="text-sm font-semibold text-black">Alignment</p>
-					<div class="border-primary-border flex flex-row rounded-lg border-2 p-0.5">
-						{#each [{ value: 'left', icon: AlignLeft }, { value: 'center', icon: AlignCenter }, { value: 'right', icon: AlignRight }] as alignOpt}
-							{@const Icon = alignOpt.icon}
+				<!-- Text Outline / Glow Row -->
+				<div class="flex flex-row gap-3 px-1 items-center justify-between">
+					<div class="flex flex-col gap-2">
+						<p class="text-sm font-semibold text-black">Text Outline / Glow</p>
+						<label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+							<input
+								type="checkbox"
+								checked={typeset.outline ?? false}
+								onchange={(e) => {
+									if (editorState.activePage && activeBubbleIndex >= 0) {
+										if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
+											editorState.activePage.bubbles[activeBubbleIndex].typeset = {
+												...DEFAULT_TYPESET_STYLE
+											};
+										}
+										editorState.activePage.bubbles[activeBubbleIndex].typeset!.outline = (
+											e.target as HTMLInputElement
+										).checked;
+										handleStyleChange();
+									}
+								}}
+								class="accent-accent h-4 w-4 rounded"
+							/>
+							Enable glow outline
+						</label>
+					</div>
+
+					{#if typeset.outline}
+						<div class="flex flex-col gap-2">
+							<p class="text-xs font-semibold text-gray-500">Outline Color</p>
+							<div class="flex items-center gap-2">
+								<input
+									type="color"
+									value={typeset.outlineColor ?? '#ffffff'}
+									oninput={(e) => {
+										if (editorState.activePage && activeBubbleIndex >= 0) {
+											if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
+												editorState.activePage.bubbles[activeBubbleIndex].typeset = {
+													...DEFAULT_TYPESET_STYLE
+												};
+											}
+											editorState.activePage.bubbles[activeBubbleIndex].typeset!.outlineColor = (
+												e.target as HTMLInputElement
+											).value;
+											handleStyleChange();
+										}
+									}}
+									class="h-8 w-8 cursor-pointer rounded-lg border border-gray-200 p-0.5"
+								/>
+								<span class="text-xs font-medium text-gray-500">{typeset.outlineColor ?? '#ffffff'}</span>
+							</div>
+						</div>
+					{/if}
+				</div>
+				<!-- Alignment & Style Formatting -->
+				<div class="flex flex-row gap-3 px-1">
+					<!-- Alignment -->
+					<div class="flex flex-col flex-1 gap-2">
+						<p class="text-sm font-semibold text-black">Alignment</p>
+						<div class="border-primary-border flex flex-row rounded-lg border-2 p-0.5 bg-gray-50 h-10 items-center">
+							{#each [{ value: 'left', icon: AlignLeft }, { value: 'center', icon: AlignCenter }, { value: 'right', icon: AlignRight }] as alignOpt}
+								{@const Icon = alignOpt.icon}
+								<button
+									onclick={() => {
+										if (editorState.activePage && activeBubbleIndex >= 0) {
+											if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
+												editorState.activePage.bubbles[activeBubbleIndex].typeset = {
+													...DEFAULT_TYPESET_STYLE
+												};
+											}
+											editorState.activePage.bubbles[activeBubbleIndex].typeset!.textAlign =
+												alignOpt.value as 'left' | 'center' | 'right';
+											handleStyleChange();
+										}
+									}}
+									class="flex h-full flex-1 items-center justify-center rounded-md text-sm transition-colors {typeset.textAlign === alignOpt.value
+										? 'bg-accent/15 text-accent font-bold'
+										: 'text-gray-500 hover:bg-gray-200'}"
+									title="Align {alignOpt.value}"
+								>
+									<Icon class="h-4 w-4" />
+								</button>
+							{/each}
+						</div>
+					</div>
+
+					<!-- Formatting -->
+					<div class="flex flex-col gap-2 w-20">
+						<p class="text-sm font-semibold text-black text-center">Style</p>
+						<div class="border-primary-border flex flex-row rounded-lg border-2 p-0.5 bg-gray-50 h-10 items-center justify-center">
 							<button
 								onclick={() => {
 									if (editorState.activePage && activeBubbleIndex >= 0) {
@@ -380,19 +475,63 @@
 												...DEFAULT_TYPESET_STYLE
 											};
 										}
-										editorState.activePage.bubbles[activeBubbleIndex].typeset!.textAlign =
-											alignOpt.value as 'left' | 'center' | 'right';
+										const current = editorState.activePage.bubbles[activeBubbleIndex].typeset!.fontStyle;
+										editorState.activePage.bubbles[activeBubbleIndex].typeset!.fontStyle =
+											current === 'italic' ? 'normal' : 'italic';
 										handleStyleChange();
 									}
 								}}
-								class="flex flex-1 items-center justify-center rounded-md py-1.5 text-sm transition-colors {typeset.textAlign ===
-								alignOpt.value
-									? 'bg-accent/15 text-accent'
-									: 'text-gray-500 hover:bg-gray-100'}"
+								class="flex h-full w-full items-center justify-center rounded-md text-sm transition-colors {typeset.fontStyle === 'italic'
+									? 'bg-accent/15 text-accent font-bold'
+									: 'text-gray-500 hover:bg-gray-200'}"
+								title="Italic"
 							>
-								<Icon class="h-4 w-4" />
+								<Italic class="h-4 w-4" />
 							</button>
-						{/each}
+						</div>
+					</div>
+				</div>
+
+				<!-- Writing Mode -->
+				<div class="flex flex-col gap-2 px-1">
+					<p class="text-sm font-semibold text-black">Writing Mode</p>
+					<div class="border-primary-border flex flex-row rounded-lg border-2 p-0.5 bg-gray-50">
+						<button
+							onclick={() => {
+								if (editorState.activePage && activeBubbleIndex >= 0) {
+									if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
+										editorState.activePage.bubbles[activeBubbleIndex].typeset = {
+											...DEFAULT_TYPESET_STYLE
+										};
+									}
+									editorState.activePage.bubbles[activeBubbleIndex].typeset!.writingMode = 'horizontal';
+									handleStyleChange();
+								}
+							}}
+							class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors {(typeset.writingMode ?? 'horizontal') === 'horizontal'
+								? 'bg-accent text-white shadow-sm'
+								: 'text-gray-500 hover:bg-gray-100'}"
+						>
+							Horizontal (Standard)
+						</button>
+						<button
+							onclick={() => {
+								if (editorState.activePage && activeBubbleIndex >= 0) {
+									if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
+										editorState.activePage.bubbles[activeBubbleIndex].typeset = {
+											...DEFAULT_TYPESET_STYLE
+										};
+									}
+									editorState.activePage.bubbles[activeBubbleIndex].typeset!.writingMode = 'vertical';
+									handleStyleChange();
+								}
+							}}
+							class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors {(typeset.writingMode ?? 'horizontal') === 'vertical'
+								? 'bg-accent text-white shadow-sm'
+								: 'text-gray-500 hover:bg-gray-100'}"
+						>
+							Vertical (Manga)
+						</button>
 					</div>
 				</div>
 				<!-- Line Height -->
@@ -459,8 +598,8 @@
 						<p class="text-sm font-semibold text-black">Position Offset</p>
 					</div>
 					<div class="flex flex-row gap-3">
-						<div class="flex flex-1 flex-col gap-1">
-							<label class="text-xs text-gray-500">X Offset</label>
+						<label class="flex flex-1 flex-col gap-1 text-xs text-gray-500">
+							<span>X Offset</span>
 							<input
 								type="number"
 								value={Math.round(typeset.offsetX)}
@@ -479,9 +618,9 @@
 								}}
 								class="border-primary-border w-full rounded-lg border bg-white px-2 py-1.5 text-center text-sm text-black"
 							/>
-						</div>
-						<div class="flex flex-1 flex-col gap-1">
-							<label class="text-xs text-gray-500">Y Offset</label>
+						</label>
+						<label class="flex flex-1 flex-col gap-1 text-xs text-gray-500">
+							<span>Y Offset</span>
 							<input
 								type="number"
 								value={Math.round(typeset.offsetY)}
@@ -500,7 +639,7 @@
 								}}
 								class="border-primary-border w-full rounded-lg border bg-white px-2 py-1.5 text-center text-sm text-black"
 							/>
-						</div>
+						</label>
 					</div>
 				</div>
 				<Separator.Root orientation="horizontal" class="h-[2px] w-full shrink-0 bg-gray-200" />

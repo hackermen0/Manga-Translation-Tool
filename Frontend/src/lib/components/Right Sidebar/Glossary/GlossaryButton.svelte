@@ -21,11 +21,13 @@
 </script>
 
 <Dialog.Root>
-  <Dialog.Trigger class="w-full">
-    <Button class="w-full border-2 border-primary-border p-4 hover:border-transparent" variant="ghost">
-      <BookOpen />
-      <p>Glossary</p>
-    </Button>
+  <Dialog.Trigger>
+    {#snippet child({ props })}
+      <Button {...props} class="w-full border-2 border-primary-border p-4 hover:border-transparent" variant="ghost">
+        <BookOpen />
+        <p>Glossary</p>
+      </Button>
+    {/snippet}
   </Dialog.Trigger>
   <Dialog.Portal>
     <Dialog.Overlay class="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out" />

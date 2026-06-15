@@ -29,7 +29,7 @@
 <div 
     bind:this={node.current} 
     {style}
-    class="flex flex-col items-center flex-shrink-0 w-[85%] mx-auto"
+    class="relative flex flex-col items-center flex-shrink-0 w-[85%] mx-auto group"
 >
     <button
         bind:this={activatorNode.current}
@@ -50,4 +50,23 @@
             {page.originalFilename}
         </div>
     </button>
+
+    {#if !isDragging.current}
+    <button
+        type="button"
+        class="absolute top-1.5 right-1.5 z-20 p-1 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:scale-110 cursor-pointer"
+        onclick={(e) => {
+            e.stopPropagation();
+            if (confirm("Are you sure you want to delete this page? This cannot be undone.")) {
+                editorState.deletePage(page.pageId);
+            }
+        }}
+        title="Delete page"
+        aria-label="Delete page"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+    </button>
+    {/if}
 </div>
