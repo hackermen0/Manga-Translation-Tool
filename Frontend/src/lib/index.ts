@@ -21,6 +21,7 @@ import { layerStateManager } from './stores/LayerStateManager.svelte';
 import { glossaryStateManager } from './stores/Glossary.svelte';
 import { themeState } from './stores/Theme.svelte';
 import { imageState } from './stores/Image.svelte';
+import { historyManager } from './stores/History.svelte';
 import { cn } from './utils';
 import GlossaryCard from './components/Right Sidebar/Glossary/GlossaryCard.svelte';
 import GlossaryButton from './components/Right Sidebar/Glossary/GlossaryButton.svelte';
@@ -47,6 +48,7 @@ export {
     glossaryStateManager,
     imageState,
     themeState,
+    historyManager,
     cn, 
     GlossaryCard,
     GlossaryButton

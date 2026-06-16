@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Filmstrip, Topbar, Bottombar, Canvas, RSidebar } from '$lib';
+	import { Filmstrip, Topbar, Bottombar, Canvas, RSidebar, historyManager } from '$lib';
 	import { editorState } from '$lib';
 	import { onMount } from 'svelte';
 
@@ -29,7 +29,34 @@
 		}
 	});
 
+	function handleKeyDown(e: KeyboardEvent) {
+		const target = e.target as HTMLElement;
+		const isInput =
+			target.tagName === 'INPUT' ||
+			target.tagName === 'TEXTAREA' ||
+			target.isContentEditable;
+
+		if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+			if (e.key.toLowerCase() === 'z') {
+				if (e.shiftKey) {
+					if (isInput) return;
+					e.preventDefault();
+					historyManager.redo();
+				} else {
+					if (isInput) return;
+					e.preventDefault();
+					historyManager.undo();
+				}
+			} else if (e.key.toLowerCase() === 'y') {
+				if (isInput) return;
+				e.preventDefault();
+				historyManager.redo();
+			}
+		}
+	}
 </script>
+
+<svelte:window onkeydown={handleKeyDown} />
 
 <div class="bg-secondary flex h-screen w-screen flex-col overflow-hidden border-2">
 	

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { editorState } from '$lib/stores/Editor.svelte';
+	import { editorState, historyManager } from '$lib';
 	import { DEFAULT_TYPESET_STYLE } from '$lib/stores/Editor.svelte';
 	import type { TypesetStyle } from '$lib/stores/Editor.svelte';
 	let { intrinsicWidth, intrinsicHeight, interactive = true } = $props<{
@@ -8,6 +8,8 @@
 		interactive?: boolean;
 	}>();
 	let svgElement: SVGSVGElement;
+	let pendingSnapshot: any = null;
+
 	// Auto-fit: calculate max font size that fits text inside a bounding box
 	function autoFitFontSize(
 		text: string,
@@ -109,6 +111,8 @@
 		const bubble = editorState.activePage?.bubbles.find((b) => b.id === bubbleId);
 		if (!bubble) return;
 
+		pendingSnapshot = historyManager.captureSnapshot(editorState.activePageId!);
+
 		if (!bubble.typeset) {
 			bubble.typeset = { ...DEFAULT_TYPESET_STYLE };
 		}
@@ -135,6 +139,10 @@
 		dragBubbleId = null;
 		window.removeEventListener('pointermove', handleDragMove);
 		window.removeEventListener('pointerup', handleDragUp);
+		if (pendingSnapshot) {
+			historyManager.recordSnapshotChange(editorState.activePageId!, pendingSnapshot);
+			pendingSnapshot = null;
+		}
 		editorState.saveTypesetting();
 	}
 	function handleBubbleClick(e: PointerEvent, bubbleId: number) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { editorState } from '$lib/stores/Editor.svelte';
+	import { editorState, historyManager } from '$lib';
 	import { zoomState } from '$lib/stores/Zoom.svelte';
 
 	let { intrinsicWidth, intrinsicHeight } = $props<{
@@ -10,6 +10,7 @@
 	let activeBubbleId = $state<number | null>(null);
 	let activePointIndex = $state<number | null>(null);
 	let isDraggingBody = $state<boolean>(false);
+	let pendingSnapshot: any = null;
 
 	let startX = 0;
 	let startY = 0;
@@ -50,6 +51,7 @@
 		)
 			return;
 
+		historyManager.recordState(editorState.activePageId!);
 		const newId = Math.max(0, ...editorState.activePage!.bubbles.map((b) => b.id)) + 1;
 		editorState.activePage!.bubbles.push({
 			id: newId,
@@ -67,7 +69,7 @@
 		e.stopPropagation();
 		e.preventDefault();
 
-		// if (e.target instanceof Element) e.target.setPointerCapture(e.pointerId);
+		pendingSnapshot = historyManager.captureSnapshot(editorState.activePageId!);
 
 		editorState.activeBubbleId = bubbleId;
 
@@ -89,6 +91,7 @@
 		editorState.activeBubbleId = bubbleId;
 
 		if (editorState.activeDetectionTool === 'delete') {
+			historyManager.recordState(editorState.activePageId!);
 			editorState.activePage!.bubbles = editorState.activePage!.bubbles.filter(
 				(b) => b.id !== bubbleId
 			);
@@ -97,6 +100,8 @@
 		}
 
 		if (editorState.activeDetectionTool !== 'drag') return;
+
+		pendingSnapshot = historyManager.captureSnapshot(editorState.activePageId!);
 
 		if (e.target instanceof Element) e.target.setPointerCapture(e.pointerId);
 
@@ -155,6 +160,11 @@
 
 		window.removeEventListener('pointermove', handlePointerMove);
 		window.removeEventListener('pointerup', handlePointerUp);
+
+		if (pendingSnapshot) {
+			historyManager.recordSnapshotChange(editorState.activePageId!, pendingSnapshot);
+			pendingSnapshot = null;
+		}
 
 		editorState.saveBubbles();
 	}

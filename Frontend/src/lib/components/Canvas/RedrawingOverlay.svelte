@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { editorState } from '$lib/stores/Editor.svelte';
+	import { editorState, historyManager } from '$lib';
 	import type { RedrawingStroke } from '$lib/stores/Editor.svelte';
 
 	let { intrinsicWidth, intrinsicHeight } = $props<{
@@ -10,6 +10,7 @@
 	let svgElement: SVGSVGElement;
 	let isDrawing = $state(false);
 	let currentStrokePoints = $state<{ x: number; y: number }[]>([]);
+	let pendingSnapshot: any = null;
 
 	let cursorX = $state(0);
 	let cursorY = $state(0);
@@ -55,6 +56,8 @@
 		if (editorState.activeSession !== 'redrawing' || !isDrawingTool) return;
 		if (e.target instanceof Element) e.target.setPointerCapture(e.pointerId);
 
+		pendingSnapshot = historyManager.captureSnapshot(editorState.activePageId!);
+
 		isDrawing = true;
 		const coords = getIntrinsicCoordinates(e.clientX, e.clientY);
 		currentStrokePoints = [coords];
@@ -86,6 +89,10 @@
 				brushColor: editorState.brushColor,
 				type: editorState.activeRedrawingTool as 'eraser' | 'restore'
 			});
+			if (pendingSnapshot) {
+				historyManager.recordSnapshotChange(editorState.activePageId!, pendingSnapshot);
+				pendingSnapshot = null;
+			}
 			editorState.saveRedrawingStrokes();
 		}
 		currentStrokePoints = [];

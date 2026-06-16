@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Open } from '$lib';
+	import { Button, Open, historyManager } from '$lib';
 	import { editorState } from '$lib/stores/Editor.svelte';
 	import { Separator } from 'bits-ui';
 	import {
@@ -68,8 +68,22 @@
 			<Separator.Root orientation="vertical" class="h-6 w-px shrink-0 bg-gray-200" />
 
 			<div class="flex items-center space-x-1">
-				<Button variant="ghost" size="sm" icon={Undo} />
-				<Button variant="ghost" size="sm" icon={Redo} />
+				<Button
+					variant="ghost"
+					size="sm"
+					icon={Undo}
+					onclick={() => historyManager.undo()}
+					disabled={!historyManager.canUndo}
+					title="Undo (Ctrl+Z)"
+				/>
+				<Button
+					variant="ghost"
+					size="sm"
+					icon={Redo}
+					onclick={() => historyManager.redo()}
+					disabled={!historyManager.canRedo}
+					title="Redo (Ctrl+Y)"
+				/>
 			</div>
 
 			<Separator.Root orientation="vertical" class="h-6 w-px shrink-0 bg-gray-200" />

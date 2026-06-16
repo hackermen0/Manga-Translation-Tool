@@ -1,5 +1,6 @@
 import { layerStateManager } from './LayerStateManager.svelte';
 import { imageState } from './Image.svelte';
+import { historyManager } from './History.svelte';
 import {
     type Point,
     type TypesetStyle,
@@ -75,10 +76,11 @@ class EditorState {
         this.activeBubbleId = null;
         layerStateManager.reset();
         imageState.reset();
+        historyManager.clear();
 
         this.workspaceId = workspaceData.workspace_id;
         this.workspaceName = workspaceData.name || workspaceData.workspace_id;
-        
+
         if (typeof window !== 'undefined') {
             localStorage.setItem('active_manga_workspace_id', this.workspaceId);
         }
@@ -94,7 +96,7 @@ class EditorState {
             layers: [],
             selectedLayerId: null
         }));
-        
+
         if (this.pages.length > 0) {
             this.setActivePage(this.pages[0].pageId);
         }
@@ -106,9 +108,9 @@ class EditorState {
         if (this.activePageId) {
             layerStateManager.saveCurrentPage(this.activePageId);
         }
-        
+
         this.activePageId = pageId;
-        
+
         const page = this.pages.find(p => p.pageId === pageId);
         if (page && page.bubbles && page.bubbles.length > 0) {
             this.activeBubbleId = page.bubbles[0].id;
@@ -121,11 +123,11 @@ class EditorState {
 
     async reorderPages(fromIndex: number, toIndex: number) {
         if (fromIndex === toIndex) return;
-        
+
         const newPages = [...this.pages];
         const [movedPage] = newPages.splice(fromIndex, 1);
         newPages.splice(toIndex, 0, movedPage);
-        
+
         this.pages = newPages;
 
         if (this.workspaceId) {
@@ -147,7 +149,7 @@ class EditorState {
                 if (index !== -1) {
                     this.pages.splice(index, 1);
                     layerStateManager.deletePage(pageId);
-                    
+
                     // If the deleted page was active, activate another page
                     if (this.activePageId === pageId) {
                         if (this.pages.length > 0) {
@@ -175,9 +177,9 @@ class EditorState {
             {
                 id: 1,
                 points: [
-                    { x: 150, y: 100 }, { x: 350, y: 100 }, 
-                    { x: 400, y: 200 }, { x: 350, y: 300 }, 
-                    { x: 200, y: 350 }, { x: 150, y: 300 }, 
+                    { x: 150, y: 100 }, { x: 350, y: 100 },
+                    { x: 400, y: 200 }, { x: 350, y: 300 },
+                    { x: 200, y: 350 }, { x: 150, y: 300 },
                     { x: 100, y: 200 }
                 ],
                 ja_text: "テスト",
@@ -188,9 +190,10 @@ class EditorState {
 
     async detectBubbles() {
         if (!this.workspaceId || !this.activePageId) return;
+        historyManager.recordState(this.activePageId);
 
         this.isProcessing = true;
-        
+
         try {
             const data = await apiDetectBubbles(this.workspaceId, this.activePageId);
             if (data.status === 'success') {
@@ -215,9 +218,10 @@ class EditorState {
 
     async runOcr() {
         if (!this.workspaceId || !this.activePageId) return;
+        historyManager.recordState(this.activePageId);
 
         this.isOcrProcessing = true;
-        
+
         try {
             const data = await apiRunOcr(this.workspaceId, this.activePageId);
             if (data.status === 'success') {
@@ -229,7 +233,6 @@ class EditorState {
                     }
                 }
 
-                // Automatically run translation after successful OCR
                 const hasJaText = data.bubbles?.some((b: any) => b.ja_text?.trim());
                 if (hasJaText) {
                     this.isOcrProcessing = false;
@@ -247,6 +250,7 @@ class EditorState {
 
     async runTranslation() {
         if (!this.workspaceId || !this.activePageId || !this.activePage) return;
+        historyManager.recordState(this.activePageId);
 
         this.isTranslating = true;
 
@@ -287,9 +291,10 @@ class EditorState {
 
     async runInpainting(borderErosion: number = 2) {
         if (!this.workspaceId || !this.activePageId || !this.activePage) return;
+        historyManager.recordState(this.activePageId);
 
         this.isProcessing = true;
-        
+
         try {
             const data = await apiRunInpainting(this.workspaceId, this.activePageId, this.activePage.bubbles, borderErosion);
             if (data.status === 'success') {
@@ -328,6 +333,4 @@ class EditorState {
 }
 
 export const editorState = new EditorState();
-
-// Re-export everything from EditorTypes for backward compatibility
 export * from './EditorTypes';

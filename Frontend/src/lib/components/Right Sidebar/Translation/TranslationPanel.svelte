@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Languages, Scan, ChevronRight, ChevronLeft, Loader2, ScanText } from '@lucide/svelte';
-	import { Button, GlossaryButton, editorState } from '$lib';
+	import { Button, GlossaryButton, editorState, historyManager } from '$lib';
 	import { Separator } from 'bits-ui';
 
 	let bubbles = $derived(editorState.activePage?.bubbles || []);
@@ -48,6 +48,39 @@
 	async function handleDetectClick() {
 		editorState.setActiveSession('detection');
 		await editorState.detectBubbles();
+	}
+
+	let textPendingSnapshot: any = null;
+	let typingTimeout: any = null;
+
+	function handleTextFocus() {
+		if (editorState.activePageId) {
+			textPendingSnapshot = historyManager.captureSnapshot(editorState.activePageId);
+		}
+	}
+
+	function handleTextInput() {
+		if (typingTimeout) clearTimeout(typingTimeout);
+		typingTimeout = setTimeout(() => {
+			if (!textPendingSnapshot || !editorState.activePageId) return;
+			const currentSnapshot = historyManager.captureSnapshot(editorState.activePageId);
+			if (currentSnapshot && JSON.stringify(currentSnapshot) !== JSON.stringify(textPendingSnapshot)) {
+				historyManager.pushSnapshot(textPendingSnapshot);
+				textPendingSnapshot = currentSnapshot;
+			}
+		}, 1000);
+		editorState.saveBubbles();
+	}
+
+	function handleTextBlur() {
+		if (typingTimeout) clearTimeout(typingTimeout);
+		if (textPendingSnapshot && editorState.activePageId) {
+			const currentSnapshot = historyManager.captureSnapshot(editorState.activePageId);
+			if (currentSnapshot && JSON.stringify(currentSnapshot) !== JSON.stringify(textPendingSnapshot)) {
+				historyManager.pushSnapshot(textPendingSnapshot);
+			}
+			textPendingSnapshot = null;
+		}
 	}
 </script>
 
@@ -163,7 +196,9 @@
 				{#if editorState.activePage && activeBubbleIndex >= 0}
 					<textarea
 						bind:value={editorState.activePage.bubbles[activeBubbleIndex].ja_text}
-						oninput={() => editorState.saveBubbles()}
+						onfocus={handleTextFocus}
+						oninput={handleTextInput}
+						onblur={handleTextBlur}
 						class="border-primary-border focus:outline-accent focus:ring-accent w-full resize-none rounded-lg border bg-white px-3 py-2 text-start text-sm text-black focus:ring-1"
 						rows="3"
 						placeholder="Enter Japanese text..."
@@ -184,7 +219,9 @@
 				{#if editorState.activePage && activeBubbleIndex >= 0}
 					<textarea
 						bind:value={editorState.activePage.bubbles[activeBubbleIndex].en_text}
-						oninput={() => editorState.saveBubbles()}
+						onfocus={handleTextFocus}
+						oninput={handleTextInput}
+						onblur={handleTextBlur}
 						class="border-primary-border focus:outline-accent focus:ring-accent w-full resize-none rounded-lg border bg-white px-3 py-2 text-start text-sm text-black focus:ring-1"
 						rows="3"
 						placeholder="Enter English translation..."

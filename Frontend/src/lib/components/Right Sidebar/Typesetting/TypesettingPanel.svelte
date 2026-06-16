@@ -13,7 +13,7 @@
 		Move,
 		Italic
 	} from '@lucide/svelte';
-	import { Button, editorState } from '$lib';
+	import { Button, editorState, historyManager } from '$lib';
 	import { DEFAULT_TYPESET_STYLE } from '$lib/stores/Editor.svelte';
 	import { Separator } from 'bits-ui';
 	let fontOptions = $state([
@@ -109,8 +109,47 @@
 		const newIdx = (activeBubbleIndex + 1) % totalBubbles;
 		editorState.activeBubbleId = bubbles[newIdx].id;
 	}
+	let stylePendingSnapshot: any = null;
+	let typingTimeout: any = null;
+
+	function startStyleChange() {
+		if (!stylePendingSnapshot && editorState.activePageId) {
+			stylePendingSnapshot = historyManager.captureSnapshot(editorState.activePageId);
+		}
+	}
+
+	function endStyleChange() {
+		if (stylePendingSnapshot && editorState.activePageId) {
+			historyManager.recordSnapshotChange(editorState.activePageId, stylePendingSnapshot);
+			stylePendingSnapshot = null;
+		}
+	}
+
+	function handleTextFocus() {
+		startStyleChange();
+	}
+
+	function handleTextInput() {
+		if (typingTimeout) clearTimeout(typingTimeout);
+		typingTimeout = setTimeout(() => {
+			if (!stylePendingSnapshot || !editorState.activePageId) return;
+			const currentSnapshot = historyManager.captureSnapshot(editorState.activePageId);
+			if (currentSnapshot && JSON.stringify(currentSnapshot) !== JSON.stringify(stylePendingSnapshot)) {
+				historyManager.pushSnapshot(stylePendingSnapshot);
+				stylePendingSnapshot = currentSnapshot;
+			}
+		}, 1000);
+		handleStyleChange();
+	}
+
+	function handleTextBlur() {
+		if (typingTimeout) clearTimeout(typingTimeout);
+		endStyleChange();
+	}
+
 	function resetCurrentBubble() {
 		if (!activeBubble || !editorState.activePage) return;
+		historyManager.recordState(editorState.activePageId!);
 		editorState.activePage.bubbles[activeBubbleIndex].typeset = {
 			...DEFAULT_TYPESET_STYLE
 		};
@@ -197,7 +236,9 @@
 					<p class="text-sm font-semibold text-black">English Text</p>
 					<textarea
 						bind:value={editorState.activePage.bubbles[activeBubbleIndex].en_text}
-						oninput={handleStyleChange}
+						onfocus={handleTextFocus}
+						oninput={handleTextInput}
+						onblur={handleTextBlur}
 						class="border-primary-border focus:outline-accent focus:ring-accent w-full resize-none rounded-lg border bg-white px-3 py-2 text-start text-sm text-black focus:ring-1"
 						rows="3"
 						placeholder="Enter English text..."
@@ -216,6 +257,7 @@
 						value={typeset.fontFamily}
 						onchange={(e) => {
 							if (editorState.activePage && activeBubbleIndex >= 0) {
+								startStyleChange();
 								if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
 									editorState.activePage.bubbles[activeBubbleIndex].typeset = {
 										...DEFAULT_TYPESET_STYLE
@@ -225,6 +267,7 @@
 									e.target as HTMLSelectElement
 								).value;
 								handleStyleChange();
+								endStyleChange();
 							}
 						}}
 						class="border-primary-border focus:outline-accent focus:ring-accent w-full rounded-lg border bg-white px-3 py-2 text-sm text-black focus:ring-1"
@@ -262,6 +305,7 @@
 								checked={typeset.autoFit}
 								onchange={(e) => {
 									if (editorState.activePage && activeBubbleIndex >= 0) {
+										startStyleChange();
 										if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
 											editorState.activePage.bubbles[activeBubbleIndex].typeset = {
 												...DEFAULT_TYPESET_STYLE
@@ -271,6 +315,7 @@
 											e.target as HTMLInputElement
 										).checked;
 										handleStyleChange();
+										endStyleChange();
 									}
 								}}
 								class="accent-accent h-3.5 w-3.5 rounded"
@@ -285,6 +330,8 @@
 							max="120"
 							value={typeset.fontSize}
 							disabled={typeset.autoFit}
+							onpointerdown={startStyleChange}
+							onchange={endStyleChange}
 							oninput={(e) => {
 								if (editorState.activePage && activeBubbleIndex >= 0) {
 									if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
@@ -306,6 +353,8 @@
 							max="120"
 							value={typeset.fontSize}
 							disabled={typeset.autoFit}
+							onfocus={handleTextFocus}
+							onblur={handleTextBlur}
 							oninput={(e) => {
 								if (editorState.activePage && activeBubbleIndex >= 0) {
 									if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
@@ -316,7 +365,7 @@
 									editorState.activePage.bubbles[activeBubbleIndex].typeset!.fontSize = Number(
 										(e.target as HTMLInputElement).value
 									);
-									handleStyleChange();
+									handleTextInput();
 								}
 							}}
 							class="border-primary-border w-16 rounded-lg border bg-white px-2 py-1 text-center text-sm text-black disabled:opacity-40"
@@ -337,6 +386,8 @@
 							max="900"
 							step="100"
 							value={typeset.fontWeight === 'bold' ? 700 : typeset.fontWeight === 'normal' ? 400 : Number(typeset.fontWeight) || 400}
+							onpointerdown={startStyleChange}
+							onchange={endStyleChange}
 							oninput={(e) => {
 								if (editorState.activePage && activeBubbleIndex >= 0) {
 									if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
@@ -358,6 +409,8 @@
 							<input
 								type="color"
 								value={typeset.fontColor}
+								onpointerdown={startStyleChange}
+								onchange={endStyleChange}
 								oninput={(e) => {
 									if (editorState.activePage && activeBubbleIndex >= 0) {
 										if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
@@ -387,6 +440,7 @@
 								checked={typeset.outline ?? false}
 								onchange={(e) => {
 									if (editorState.activePage && activeBubbleIndex >= 0) {
+										startStyleChange();
 										if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
 											editorState.activePage.bubbles[activeBubbleIndex].typeset = {
 												...DEFAULT_TYPESET_STYLE
@@ -396,6 +450,7 @@
 											e.target as HTMLInputElement
 										).checked;
 										handleStyleChange();
+										endStyleChange();
 									}
 								}}
 								class="accent-accent h-4 w-4 rounded"
@@ -411,6 +466,8 @@
 								<input
 									type="color"
 									value={typeset.outlineColor ?? '#ffffff'}
+									onpointerdown={startStyleChange}
+									onchange={endStyleChange}
 									oninput={(e) => {
 										if (editorState.activePage && activeBubbleIndex >= 0) {
 											if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
@@ -442,6 +499,7 @@
 								<button
 									onclick={() => {
 										if (editorState.activePage && activeBubbleIndex >= 0) {
+											startStyleChange();
 											if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
 												editorState.activePage.bubbles[activeBubbleIndex].typeset = {
 													...DEFAULT_TYPESET_STYLE
@@ -450,6 +508,7 @@
 											editorState.activePage.bubbles[activeBubbleIndex].typeset!.textAlign =
 												alignOpt.value as 'left' | 'center' | 'right';
 											handleStyleChange();
+											endStyleChange();
 										}
 									}}
 									class="flex h-full flex-1 items-center justify-center rounded-md text-sm transition-colors {typeset.textAlign === alignOpt.value
@@ -470,6 +529,7 @@
 							<button
 								onclick={() => {
 									if (editorState.activePage && activeBubbleIndex >= 0) {
+										startStyleChange();
 										if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
 											editorState.activePage.bubbles[activeBubbleIndex].typeset = {
 												...DEFAULT_TYPESET_STYLE
@@ -479,6 +539,7 @@
 										editorState.activePage.bubbles[activeBubbleIndex].typeset!.fontStyle =
 											current === 'italic' ? 'normal' : 'italic';
 										handleStyleChange();
+										endStyleChange();
 									}
 								}}
 								class="flex h-full w-full items-center justify-center rounded-md text-sm transition-colors {typeset.fontStyle === 'italic'
@@ -499,6 +560,7 @@
 						<button
 							onclick={() => {
 								if (editorState.activePage && activeBubbleIndex >= 0) {
+									startStyleChange();
 									if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
 										editorState.activePage.bubbles[activeBubbleIndex].typeset = {
 											...DEFAULT_TYPESET_STYLE
@@ -506,6 +568,7 @@
 									}
 									editorState.activePage.bubbles[activeBubbleIndex].typeset!.writingMode = 'horizontal';
 									handleStyleChange();
+									endStyleChange();
 								}
 							}}
 							class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors {(typeset.writingMode ?? 'horizontal') === 'horizontal'
@@ -517,6 +580,7 @@
 						<button
 							onclick={() => {
 								if (editorState.activePage && activeBubbleIndex >= 0) {
+									startStyleChange();
 									if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
 										editorState.activePage.bubbles[activeBubbleIndex].typeset = {
 											...DEFAULT_TYPESET_STYLE
@@ -524,6 +588,7 @@
 									}
 									editorState.activePage.bubbles[activeBubbleIndex].typeset!.writingMode = 'vertical';
 									handleStyleChange();
+									endStyleChange();
 								}
 							}}
 							class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors {(typeset.writingMode ?? 'horizontal') === 'vertical'
@@ -546,6 +611,8 @@
 						max="2.5"
 						step="0.1"
 						value={typeset.lineHeight}
+						onpointerdown={startStyleChange}
+						onchange={endStyleChange}
 						oninput={(e) => {
 							if (editorState.activePage && activeBubbleIndex >= 0) {
 								if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
@@ -574,6 +641,8 @@
 						max="8"
 						step="0.5"
 						value={typeset.letterSpacing}
+						onpointerdown={startStyleChange}
+						onchange={endStyleChange}
 						oninput={(e) => {
 							if (editorState.activePage && activeBubbleIndex >= 0) {
 								if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
@@ -603,6 +672,8 @@
 							<input
 								type="number"
 								value={Math.round(typeset.offsetX)}
+								onfocus={handleTextFocus}
+								onblur={handleTextBlur}
 								oninput={(e) => {
 									if (editorState.activePage && activeBubbleIndex >= 0) {
 										if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
@@ -613,7 +684,7 @@
 										editorState.activePage.bubbles[activeBubbleIndex].typeset!.offsetX = Number(
 											(e.target as HTMLInputElement).value
 										);
-										handleStyleChange();
+										handleTextInput();
 									}
 								}}
 								class="border-primary-border w-full rounded-lg border bg-white px-2 py-1.5 text-center text-sm text-black"
@@ -624,6 +695,8 @@
 							<input
 								type="number"
 								value={Math.round(typeset.offsetY)}
+								onfocus={handleTextFocus}
+								onblur={handleTextBlur}
 								oninput={(e) => {
 									if (editorState.activePage && activeBubbleIndex >= 0) {
 										if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
@@ -634,7 +707,7 @@
 										editorState.activePage.bubbles[activeBubbleIndex].typeset!.offsetY = Number(
 											(e.target as HTMLInputElement).value
 										);
-										handleStyleChange();
+										handleTextInput();
 									}
 								}}
 								class="border-primary-border w-full rounded-lg border bg-white px-2 py-1.5 text-center text-sm text-black"
@@ -650,6 +723,7 @@
 						class="border-primary-border flex w-full flex-row gap-2 border-2 text-accent hover:bg-accent/5 hover:border-accent"
 						onclick={() => {
 							if (editorState.activePage && activeBubble) {
+								historyManager.recordState(editorState.activePageId!);
 								const currentStyle = activeBubble.typeset || DEFAULT_TYPESET_STYLE;
 								for (const b of editorState.activePage.bubbles) {
 									b.typeset = { ...currentStyle };

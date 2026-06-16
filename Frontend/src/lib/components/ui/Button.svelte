@@ -13,6 +13,7 @@
 		icon?: Component<IconProps, {}, ''>;
 		disabled?: boolean;
 		href?: string;
+		title?: string;
 	}
 
 	let {
