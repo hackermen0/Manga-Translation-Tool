@@ -54,7 +54,10 @@ class ImageState {
         }
     }
 
-
+    reset() {
+        this.images = {};
+        this.imageIndex = 0;
+    }
 }
 
 

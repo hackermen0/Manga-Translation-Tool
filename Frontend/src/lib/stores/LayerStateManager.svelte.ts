@@ -124,6 +124,12 @@ class LayerStateManager {
         const state = this.layers[id];
         return state ? state.visibility && !state.locked : false;
     }
+
+    reset() {
+        this.layers = {};
+        this.selectedLayerId = null;
+        this.pageCache = {};
+    }
 }
 
 export const layerStateManager = new LayerStateManager();

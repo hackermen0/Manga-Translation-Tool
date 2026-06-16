@@ -89,7 +89,12 @@
 			</div>
 		</div>
 
-		<div class="flex items-center space-x-2">
+		<div class="flex items-center space-x-3">
+			{#if editorState.workspaceName}
+				<span class="text-xs font-semibold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+					Workspace: {editorState.workspaceName}
+				</span>
+			{/if}
 			<div class="text-sm font-medium text-gray-700">Manga Translator Pro</div>
 		</div>
 	</div>

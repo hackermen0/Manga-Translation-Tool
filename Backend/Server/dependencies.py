@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-# Ensure backend directory is in the sys path for relative imports of OCR, speech bubble detection, etc.
 backend_dir = Path(__file__).resolve().parent.parent
 if str(backend_dir) not in sys.path:
     sys.path.append(str(backend_dir))
@@ -14,10 +13,8 @@ from inpainting.cleaner import HybridMangaCleaner
 
 from config import DETECTOR_WEIGHTS
 
-# Initialize the speech bubble detector instance
 bubble_detector = SpeechBubbleDetector(DETECTOR_WEIGHTS)
 
-# Lazy singletons for the other ML components
 ocr_processor = None
 manga_cleaner = None
 manga_translator = None

@@ -1,17 +1,62 @@
+import re
 import uuid
 import json
 from pathlib import Path
 from typing import List
 # pyrefly: ignore [missing-import]
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form
 from config import WORKSPACES_DIR
 from models import ReorderRequest
 
 router = APIRouter(prefix="/api/workspace")
 
 
+def natural_sort_key(s: str) -> list:
+    """
+    Helper function to perform natural alphanumeric sorting on filenames.
+    """
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(r"(\d+)", s)]
+
+
+@router.get("")
+async def list_workspaces():
+    """
+    Lists all available workspaces on disk and returns their metadata
+    (id, name, pages count, updated_at).
+    """
+    workspaces = []
+    if not WORKSPACES_DIR.exists():
+        return {"workspaces": []}
+
+    for path in WORKSPACES_DIR.iterdir():
+        if path.is_dir():
+            state_file = path / "chapter_data.json"
+            if state_file.exists():
+                try:
+                    with open(state_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+
+                    mtime = state_file.stat().st_mtime
+
+                    workspaces.append(
+                        {
+                            "workspace_id": data.get("workspace_id", path.name),
+                            "name": data.get("name", data.get("workspace_id", path.name)),
+                            "pages_count": len(data.get("pages", [])),
+                            "updated_at": mtime,
+                        }
+                    )
+                except Exception as e:
+                    print(f"Error loading workspace {path.name}: {e}")
+
+    workspaces.sort(key=lambda x: x["updated_at"], reverse=True)
+    return {"workspaces": workspaces}
+
+
 @router.post("/create")
-async def create_workspace(files: List[UploadFile] = File(...)):
+async def create_workspace(
+    files: List[UploadFile] = File(...), name: str = Form(None)
+):
     """
     Accepts a batch of manga pages, provisions a dedicated sandbox folder,
     saves the raw images, and generates the master tracking JSON.
@@ -30,12 +75,17 @@ async def create_workspace(files: List[UploadFile] = File(...)):
     inpainted_dir.mkdir(parents=True, exist_ok=True)
     masks_dir.mkdir(parents=True, exist_ok=True)
 
-    chapter_state = {"workspace_id": workspace_id, "pages": []}
+    chapter_state = {
+        "workspace_id": workspace_id,
+        "name": name if name else workspace_id,
+        "pages": [],
+    }
 
     try:
-        sorted_files = sorted(files, key=lambda f: f.filename)
+        sorted_files = sorted(files, key=lambda f: natural_sort_key(f.filename or ""))
 
         for index, file in enumerate(sorted_files):
+            print(file)
             file_extension = Path(file.filename).suffix
             safe_filename = f"page_{str(index + 1).zfill(2)}{file_extension}"
             save_path = original_dir / safe_filename
@@ -153,7 +203,6 @@ async def delete_page(workspace_id: str, page_id: str):
 
     deleted_page = chapter_state["pages"].pop(target_index)
 
-    # Clean up associated files from disk
     try:
         original_url = deleted_page.get("original_url")
         if original_url:

@@ -2,7 +2,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Ensure the server folder and the backend parent folder are in sys.path
 backend_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(backend_dir))
 sys.path.append(str(backend_dir / "server"))
@@ -53,7 +52,6 @@ class SimpleCORSMiddleware:
 
 app.mount("/workspaces", SimpleCORSMiddleware(StaticFiles(directory=str(WORKSPACES_DIR))), name="workspaces")
 
-# Include the modular routers
 app.include_router(workspace_router)
 app.include_router(page_router)
 

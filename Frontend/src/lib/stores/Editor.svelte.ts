@@ -1,4 +1,5 @@
-import { layerStateManager } from '$lib';
+import { layerStateManager } from './LayerStateManager.svelte';
+import { imageState } from './Image.svelte';
 import {
     type Point,
     type TypesetStyle,
@@ -31,6 +32,7 @@ class EditorState {
     exportAllHandler = $state<(() => Promise<void>) | null>(null);
 
     workspaceId = $state<string | null>(null);
+    workspaceName = $state<string | null>(null);
     activePageId = $state<string | null>(null);
     activeBubbleId = $state<number | null>(null);
     isProcessing = $state<boolean>(false);
@@ -68,8 +70,14 @@ class EditorState {
         this.activeSession = section;
     }
 
-    initWorkspace(workspaceData: { workspace_id: string; pages: any[] }) {
+    initWorkspace(workspaceData: { workspace_id: string; name?: string; pages: any[] }) {
+        this.activePageId = null;
+        this.activeBubbleId = null;
+        layerStateManager.reset();
+        imageState.reset();
+
         this.workspaceId = workspaceData.workspace_id;
+        this.workspaceName = workspaceData.name || workspaceData.workspace_id;
         
         if (typeof window !== 'undefined') {
             localStorage.setItem('active_manga_workspace_id', this.workspaceId);
