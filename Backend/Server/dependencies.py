@@ -11,9 +11,11 @@ from translation.translate import MangaTranslationEngine
 from speech_bubble_detection.detector import SpeechBubbleDetector
 from inpainting.cleaner import HybridMangaCleaner
 
-from config import DETECTOR_WEIGHTS
+from config import SPEECH_BUBBLE_DETECTOR_WEIGHTS, TEXT_DETECTOR_WEIGHTS
+from ultralytics import YOLO
 
-bubble_detector = SpeechBubbleDetector(DETECTOR_WEIGHTS)
+bubble_detector = SpeechBubbleDetector(SPEECH_BUBBLE_DETECTOR_WEIGHTS)
+text_detector = YOLO(TEXT_DETECTOR_WEIGHTS, task="detect")
 
 ocr_processor = None
 manga_cleaner = None

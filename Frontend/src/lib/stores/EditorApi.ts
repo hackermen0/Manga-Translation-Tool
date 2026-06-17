@@ -44,6 +44,19 @@ export async function apiDetectBubbles(workspaceId: string, pageId: string): Pro
 }
 
 /**
+ * Initiates Sound Effects (SFX) and bubble detection on the backend.
+ */
+export async function apiDetectSFX(workspaceId: string, pageId: string): Promise<any> {
+    const response = await fetch(`${BACKEND_URL}/api/workspace/${workspaceId}/page/${pageId}/detect-sfx`, {
+        method: 'POST'
+    });
+    if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
+    }
+    return response.json();
+}
+
+/**
  * Runs OCR on a target page.
  */
 export async function apiRunOcr(workspaceId: string, pageId: string): Promise<any> {

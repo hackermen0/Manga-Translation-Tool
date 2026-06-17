@@ -17,20 +17,104 @@
 	import { DEFAULT_TYPESET_STYLE } from '$lib/stores/Editor.svelte';
 	import { Separator } from 'bits-ui';
 	let fontOptions = $state([
-		{ label: 'CC Wild Words', value: 'CC Wild Words', styleType: 'Comic Serif/Sans Mix', purpose: 'Standard Dialogue', tone: 'Neutral / Narrative' },
-		{ label: 'Manga Temple', value: 'Manga Temple', styleType: 'Classic Manga Sans', purpose: 'Standard Dialogue', tone: 'Traditional / Narrative' },
-		{ label: 'Anime Ace', value: 'Anime Ace', styleType: 'Clean Comic Sans', purpose: 'Budget Standard Speech', tone: 'Casual / Friendly' },
-		{ label: 'Komika Hands', value: 'Komika Hands', styleType: 'Clean Dialogue Sans', purpose: 'Modern Speech / Thoughts', tone: 'Friendly / Energetic' },
-		{ label: 'Komika Axis', value: 'Komika Axis', styleType: 'Heavy Rounded Comic', purpose: 'Exclamations / Main Dialogue', tone: 'Impactful / Confident' },
-		{ label: 'Creative Block BB', value: 'Creative Block BB', styleType: 'Square Comic Sans', purpose: 'Heroic Dialogue / Main Story', tone: 'Bold / Energetic' },
-		{ label: 'Badaboom BB', value: 'Badaboom BB', styleType: 'Action SFX Display', purpose: 'Screaming / Sound Effects', tone: 'Excited / High Impact' },
-		{ label: 'Damn Noisy Kids', value: 'Damn Noisy Kids', styleType: 'Jittery SFX', purpose: 'Angry Shouting / SFX', tone: 'Aggressive / Loud' },
-		{ label: 'Feast of Flesh BB', value: 'Feast of Flesh BB', styleType: 'Distressed Horror Display', purpose: 'Demons / Threatening Speech / SFX', tone: 'Scary / Creepy / Menacing' },
-		{ label: 'CC Lettering Black', value: 'CC Lettering Black', styleType: 'Heavy Gothic/Bold', purpose: 'Villains / Dark Artifacts', tone: 'Menacing / Authoritative' },
-		{ label: 'Whiz Bang', value: 'Whiz Bang', styleType: 'Jittery / Angular', purpose: 'Screaming / Shock', tone: 'Panicked / High Energy' },
-		{ label: 'Catholic School Girls', value: 'Catholic School Girls', styleType: 'Chalkboard Handwriting', purpose: 'Side Notes / Whispers / Flashbacks', tone: 'Cute / Playful' },
-		{ label: 'Kid Kosmic', value: 'Kid Kosmic', styleType: 'Blocky Comic Handwriting', purpose: 'Internal Thoughts / Child Characters', tone: 'Whimsical / Innocent' },
-		{ label: 'Augie', value: 'Augie', styleType: 'Handwriting', purpose: 'Internal Monologue', tone: 'Intimate / Reflective' }
+		{
+			label: 'CC Wild Words',
+			value: 'CC Wild Words',
+			styleType: 'Comic Serif/Sans Mix',
+			purpose: 'Standard Dialogue',
+			tone: 'Neutral / Narrative'
+		},
+		{
+			label: 'Manga Temple',
+			value: 'Manga Temple',
+			styleType: 'Classic Manga Sans',
+			purpose: 'Standard Dialogue',
+			tone: 'Traditional / Narrative'
+		},
+		{
+			label: 'Anime Ace',
+			value: 'Anime Ace',
+			styleType: 'Clean Comic Sans',
+			purpose: 'Budget Standard Speech',
+			tone: 'Casual / Friendly'
+		},
+		{
+			label: 'Komika Hands',
+			value: 'Komika Hands',
+			styleType: 'Clean Dialogue Sans',
+			purpose: 'Modern Speech / Thoughts',
+			tone: 'Friendly / Energetic'
+		},
+		{
+			label: 'Komika Axis',
+			value: 'Komika Axis',
+			styleType: 'Heavy Rounded Comic',
+			purpose: 'Exclamations / Main Dialogue',
+			tone: 'Impactful / Confident'
+		},
+		{
+			label: 'Creative Block BB',
+			value: 'Creative Block BB',
+			styleType: 'Square Comic Sans',
+			purpose: 'Heroic Dialogue / Main Story',
+			tone: 'Bold / Energetic'
+		},
+		{
+			label: 'Badaboom BB',
+			value: 'Badaboom BB',
+			styleType: 'Action SFX Display',
+			purpose: 'Screaming / Sound Effects',
+			tone: 'Excited / High Impact'
+		},
+		{
+			label: 'Damn Noisy Kids',
+			value: 'Damn Noisy Kids',
+			styleType: 'Jittery SFX',
+			purpose: 'Angry Shouting / SFX',
+			tone: 'Aggressive / Loud'
+		},
+		{
+			label: 'Feast of Flesh BB',
+			value: 'Feast of Flesh BB',
+			styleType: 'Distressed Horror Display',
+			purpose: 'Demons / Threatening Speech / SFX',
+			tone: 'Scary / Creepy / Menacing'
+		},
+		{
+			label: 'CC Lettering Black',
+			value: 'CC Lettering Black',
+			styleType: 'Heavy Gothic/Bold',
+			purpose: 'Villains / Dark Artifacts',
+			tone: 'Menacing / Authoritative'
+		},
+		{
+			label: 'Whiz Bang',
+			value: 'Whiz Bang',
+			styleType: 'Jittery / Angular',
+			purpose: 'Screaming / Shock',
+			tone: 'Panicked / High Energy'
+		},
+		{
+			label: 'Catholic School Girls',
+			value: 'Catholic School Girls',
+			styleType: 'Chalkboard Handwriting',
+			purpose: 'Side Notes / Whispers / Flashbacks',
+			tone: 'Cute / Playful'
+		},
+		{
+			label: 'Kid Kosmic',
+			value: 'Kid Kosmic',
+			styleType: 'Blocky Comic Handwriting',
+			purpose: 'Internal Thoughts / Child Characters',
+			tone: 'Whimsical / Innocent'
+		},
+		{
+			label: 'Augie',
+			value: 'Augie',
+			styleType: 'Handwriting',
+			purpose: 'Internal Monologue',
+			tone: 'Intimate / Reflective'
+		}
 	]);
 
 	let bubbles = $derived(editorState.activePage?.bubbles || []);
@@ -42,15 +126,19 @@
 	});
 	let activeBubble = $derived(bubbles[activeBubbleIndex]);
 	let selectedFontMetadata = $derived(
-		fontOptions.find((f) => f.value === (activeBubble?.typeset?.fontFamily || DEFAULT_TYPESET_STYLE.fontFamily))
+		fontOptions.find(
+			(f) => f.value === (activeBubble?.typeset?.fontFamily || DEFAULT_TYPESET_STYLE.fontFamily)
+		)
 	);
-	
+
 	let localFontsLoaded = $state(false);
 	let isFontLoading = $state(false);
 
 	async function loadLocalFonts() {
 		if (!('queryLocalFonts' in window)) {
-			alert('Your browser does not support the Local Font Access API. Please use a Chromium-based browser (Chrome, Edge).');
+			alert(
+				'Your browser does not support the Local Font Access API. Please use a Chromium-based browser (Chrome, Edge).'
+			);
 			return;
 		}
 		try {
@@ -61,17 +149,17 @@
 			for (const fontData of availableFonts) {
 				uniqueFonts.add(fontData.family);
 			}
-			
-			const newFonts = Array.from(uniqueFonts).map(f => ({
+
+			const newFonts = Array.from(uniqueFonts).map((f) => ({
 				label: f,
 				value: f,
 				styleType: 'System Font',
 				purpose: 'User Installed',
 				tone: 'Varies'
 			}));
-            
+
 			for (const nf of newFonts) {
-				if (!fontOptions.find(opt => opt.value === nf.value)) {
+				if (!fontOptions.find((opt) => opt.value === nf.value)) {
 					fontOptions.push(nf);
 				}
 			}
@@ -134,7 +222,10 @@
 		typingTimeout = setTimeout(() => {
 			if (!stylePendingSnapshot || !editorState.activePageId) return;
 			const currentSnapshot = historyManager.captureSnapshot(editorState.activePageId);
-			if (currentSnapshot && JSON.stringify(currentSnapshot) !== JSON.stringify(stylePendingSnapshot)) {
+			if (
+				currentSnapshot &&
+				JSON.stringify(currentSnapshot) !== JSON.stringify(stylePendingSnapshot)
+			) {
 				historyManager.pushSnapshot(stylePendingSnapshot);
 				stylePendingSnapshot = currentSnapshot;
 			}
@@ -249,8 +340,18 @@
 				<div class="flex flex-col gap-2 px-1">
 					<div class="flex items-center justify-between">
 						<p class="text-sm font-semibold text-black">Font Family</p>
-						<Button variant="outline" size="sm" class="h-6 px-2 text-xs" onclick={loadLocalFonts} disabled={localFontsLoaded || isFontLoading}>
-							{isFontLoading ? 'Loading...' : localFontsLoaded ? 'System Fonts Loaded' : 'Load System Fonts'}
+						<Button
+							variant="outline"
+							size="sm"
+							class="h-6 px-2 text-xs"
+							onclick={loadLocalFonts}
+							disabled={localFontsLoaded || isFontLoading}
+						>
+							{isFontLoading
+								? 'Loading...'
+								: localFontsLoaded
+									? 'System Fonts Loaded'
+									: 'Load System Fonts'}
 						</Button>
 					</div>
 					<select
@@ -279,18 +380,21 @@
 						{/each}
 					</select>
 					{#if selectedFontMetadata}
-						<div class="mt-1 flex flex-col gap-1.5 rounded-lg border border-accent/20 bg-accent/5 p-3 text-xs shadow-inner">
+						<div
+							class="border-accent/20 bg-accent/5 mt-1 flex flex-col gap-1.5 rounded-lg border p-3 text-xs shadow-inner"
+						>
 							<div class="flex items-center justify-between">
 								<span class="font-semibold text-gray-500">Style:</span>
 								<span class="font-medium text-black">{selectedFontMetadata.styleType}</span>
 							</div>
 							<div class="flex items-center justify-between">
 								<span class="font-semibold text-gray-500">Purpose:</span>
-								<span class="font-medium text-black text-right">{selectedFontMetadata.purpose}</span>
+								<span class="text-right font-medium text-black">{selectedFontMetadata.purpose}</span
+								>
 							</div>
 							<div class="flex items-center justify-between">
 								<span class="font-semibold text-gray-500">Tone:</span>
-								<span class="font-medium text-accent font-bold">{selectedFontMetadata.tone}</span>
+								<span class="text-accent font-medium">{selectedFontMetadata.tone}</span>
 							</div>
 						</div>
 					{/if}
@@ -373,19 +477,29 @@
 					</div>
 				</div>
 				<!-- Font Weight & Color Row -->
-				<div class="flex flex-row gap-3 px-1 items-end">
+				<div class="flex flex-row items-end gap-3 px-1">
 					<!-- Font Weight Slider -->
 					<div class="flex flex-1 flex-col gap-2">
-						<div class="flex justify-between items-center">
+						<div class="flex items-center justify-between">
 							<p class="text-sm font-semibold text-black">Weight</p>
-							<span class="text-xs text-accent font-bold">{typeset.fontWeight === 'bold' ? 700 : typeset.fontWeight === 'normal' ? 400 : typeset.fontWeight}</span>
+							<span class="text-accent text-xs font-bold"
+								>{typeset.fontWeight === 'bold'
+									? 700
+									: typeset.fontWeight === 'normal'
+										? 400
+										: typeset.fontWeight}</span
+							>
 						</div>
 						<input
 							type="range"
 							min="100"
 							max="900"
 							step="100"
-							value={typeset.fontWeight === 'bold' ? 700 : typeset.fontWeight === 'normal' ? 400 : Number(typeset.fontWeight) || 400}
+							value={typeset.fontWeight === 'bold'
+								? 700
+								: typeset.fontWeight === 'normal'
+									? 400
+									: Number(typeset.fontWeight) || 400}
 							onpointerdown={startStyleChange}
 							onchange={endStyleChange}
 							oninput={(e) => {
@@ -395,7 +509,9 @@
 											...DEFAULT_TYPESET_STYLE
 										};
 									}
-									editorState.activePage.bubbles[activeBubbleIndex].typeset!.fontWeight = Number((e.target as HTMLInputElement).value);
+									editorState.activePage.bubbles[activeBubbleIndex].typeset!.fontWeight = Number(
+										(e.target as HTMLInputElement).value
+									);
 									handleStyleChange();
 								}
 							}}
@@ -431,10 +547,10 @@
 					</div>
 				</div>
 				<!-- Text Outline / Glow Row -->
-				<div class="flex flex-row gap-3 px-1 items-center justify-between">
+				<div class="flex flex-row items-center justify-between gap-3 px-1">
 					<div class="flex flex-col gap-2">
 						<p class="text-sm font-semibold text-black">Text Outline / Glow</p>
-						<label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+						<label class="flex cursor-pointer items-center gap-2 text-xs text-gray-500 select-none">
 							<input
 								type="checkbox"
 								checked={typeset.outline ?? false}
@@ -483,7 +599,9 @@
 									}}
 									class="h-8 w-8 cursor-pointer rounded-lg border border-gray-200 p-0.5"
 								/>
-								<span class="text-xs font-medium text-gray-500">{typeset.outlineColor ?? '#ffffff'}</span>
+								<span class="text-xs font-medium text-gray-500"
+									>{typeset.outlineColor ?? '#ffffff'}</span
+								>
 							</div>
 						</div>
 					{/if}
@@ -491,9 +609,11 @@
 				<!-- Alignment & Style Formatting -->
 				<div class="flex flex-row gap-3 px-1">
 					<!-- Alignment -->
-					<div class="flex flex-col flex-1 gap-2">
+					<div class="flex flex-1 flex-col gap-2">
 						<p class="text-sm font-semibold text-black">Alignment</p>
-						<div class="border-primary-border flex flex-row rounded-lg border-2 p-0.5 bg-gray-50 h-10 items-center">
+						<div
+							class="border-primary-border flex h-10 flex-row items-center rounded-lg border-2 bg-gray-50 p-0.5"
+						>
 							{#each [{ value: 'left', icon: AlignLeft }, { value: 'center', icon: AlignCenter }, { value: 'right', icon: AlignRight }] as alignOpt}
 								{@const Icon = alignOpt.icon}
 								<button
@@ -511,7 +631,8 @@
 											endStyleChange();
 										}
 									}}
-									class="flex h-full flex-1 items-center justify-center rounded-md text-sm transition-colors {typeset.textAlign === alignOpt.value
+									class="flex h-full flex-1 items-center justify-center rounded-md text-sm transition-colors {typeset.textAlign ===
+									alignOpt.value
 										? 'bg-accent/15 text-accent font-bold'
 										: 'text-gray-500 hover:bg-gray-200'}"
 									title="Align {alignOpt.value}"
@@ -523,9 +644,11 @@
 					</div>
 
 					<!-- Formatting -->
-					<div class="flex flex-col gap-2 w-20">
-						<p class="text-sm font-semibold text-black text-center">Style</p>
-						<div class="border-primary-border flex flex-row rounded-lg border-2 p-0.5 bg-gray-50 h-10 items-center justify-center">
+					<div class="flex w-20 flex-col gap-2">
+						<p class="text-center text-sm font-semibold text-black">Style</p>
+						<div
+							class="border-primary-border flex h-10 flex-row items-center justify-center rounded-lg border-2 bg-gray-50 p-0.5"
+						>
 							<button
 								onclick={() => {
 									if (editorState.activePage && activeBubbleIndex >= 0) {
@@ -535,14 +658,16 @@
 												...DEFAULT_TYPESET_STYLE
 											};
 										}
-										const current = editorState.activePage.bubbles[activeBubbleIndex].typeset!.fontStyle;
+										const current =
+											editorState.activePage.bubbles[activeBubbleIndex].typeset!.fontStyle;
 										editorState.activePage.bubbles[activeBubbleIndex].typeset!.fontStyle =
 											current === 'italic' ? 'normal' : 'italic';
 										handleStyleChange();
 										endStyleChange();
 									}
 								}}
-								class="flex h-full w-full items-center justify-center rounded-md text-sm transition-colors {typeset.fontStyle === 'italic'
+								class="flex h-full w-full items-center justify-center rounded-md text-sm transition-colors {typeset.fontStyle ===
+								'italic'
 									? 'bg-accent/15 text-accent font-bold'
 									: 'text-gray-500 hover:bg-gray-200'}"
 								title="Italic"
@@ -556,7 +681,7 @@
 				<!-- Writing Mode -->
 				<div class="flex flex-col gap-2 px-1">
 					<p class="text-sm font-semibold text-black">Writing Mode</p>
-					<div class="border-primary-border flex flex-row rounded-lg border-2 p-0.5 bg-gray-50">
+					<div class="border-primary-border flex flex-row rounded-lg border-2 bg-gray-50 p-0.5">
 						<button
 							onclick={() => {
 								if (editorState.activePage && activeBubbleIndex >= 0) {
@@ -566,12 +691,14 @@
 											...DEFAULT_TYPESET_STYLE
 										};
 									}
-									editorState.activePage.bubbles[activeBubbleIndex].typeset!.writingMode = 'horizontal';
+									editorState.activePage.bubbles[activeBubbleIndex].typeset!.writingMode =
+										'horizontal';
 									handleStyleChange();
 									endStyleChange();
 								}
 							}}
-							class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors {(typeset.writingMode ?? 'horizontal') === 'horizontal'
+							class="flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors {(typeset.writingMode ??
+								'horizontal') === 'horizontal'
 								? 'bg-accent text-white shadow-sm'
 								: 'text-gray-500 hover:bg-gray-100'}"
 						>
@@ -586,12 +713,14 @@
 											...DEFAULT_TYPESET_STYLE
 										};
 									}
-									editorState.activePage.bubbles[activeBubbleIndex].typeset!.writingMode = 'vertical';
+									editorState.activePage.bubbles[activeBubbleIndex].typeset!.writingMode =
+										'vertical';
 									handleStyleChange();
 									endStyleChange();
 								}
 							}}
-							class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors {(typeset.writingMode ?? 'horizontal') === 'vertical'
+							class="flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors {(typeset.writingMode ??
+								'horizontal') === 'vertical'
 								? 'bg-accent text-white shadow-sm'
 								: 'text-gray-500 hover:bg-gray-100'}"
 						>
@@ -720,7 +849,7 @@
 				<div class="flex flex-col gap-2">
 					<Button
 						variant="outline"
-						class="border-primary-border flex w-full flex-row gap-2 border-2 text-accent hover:bg-accent/5 hover:border-accent"
+						class="border-primary-border text-accent hover:bg-accent/5 hover:border-accent flex w-full flex-row gap-2 border-2"
 						onclick={() => {
 							if (editorState.activePage && activeBubble) {
 								historyManager.recordState(editorState.activePageId!);

@@ -505,7 +505,7 @@ def _build_arg_parser():
     parser.add_argument("--image", required=True, help="Path to input manga page image")
     parser.add_argument(
         "--detector-model",
-        default=str(BACKEND_ROOT / "models" / "bubble_segmenter_best.pt"),
+        default=str(BACKEND_ROOT / "models" / "speech_bubble_detector.pt"),
         help="Path to speech bubble detector weights",
     )
     parser.add_argument(

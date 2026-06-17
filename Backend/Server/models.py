@@ -28,6 +28,7 @@ class BubbleUpdateModel(BaseModel):
     ja_text: str = ""
     en_text: str = ""
     typeset: TypesetStyleModel | None = None
+    is_sfx: bool = False
 
 
 class BubblesPayload(BaseModel):

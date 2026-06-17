@@ -43,6 +43,7 @@ export interface MangaBubble {
     ja_text: string;
     en_text: string;
     typeset?: TypesetStyle;
+    is_sfx?: boolean;
 }
 
 export interface RedrawingStroke {

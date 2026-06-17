@@ -138,7 +138,7 @@ class SpeechBubbleDetector:
 # if __name__ == "__main__":
 #     from pathlib import Path
 
-#     MODEL_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\models\bubble_segmenter_best.pt"
+#     MODEL_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\models\speech_bubble_detector.pt"
 #     IMAGE_PATH = r"C:\Users\KIIT\Documents\Coding Projects\Python projects\On-going Projects\Manga Translation Tool\Backend\translation-pipeline\raw\103.jpg"
 #     OUTPUT_DIR = Path("output")
 #     OUTPUT_DIR.mkdir(exist_ok=True)

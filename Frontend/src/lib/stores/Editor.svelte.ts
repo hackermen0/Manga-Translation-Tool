@@ -13,6 +13,7 @@ import {
     apiReorderPages,
     apiDeletePage,
     apiDetectBubbles,
+    apiDetectSFX,
     apiRunOcr,
     apiRunTranslation,
     apiSaveBubbles,
@@ -183,7 +184,8 @@ class EditorState {
                     { x: 100, y: 200 }
                 ],
                 ja_text: "テスト",
-                en_text: "Test bubble"
+                en_text: "Test bubble",
+                is_sfx: false
             }
         ];
     }
@@ -211,6 +213,34 @@ class EditorState {
         } catch (error) {
             console.error("Speech bubble detection failed:", error);
             alert("Failed to run AI detection. Is your FastAPI server running?");
+        } finally {
+            this.isProcessing = false;
+        }
+    }
+
+    async detectSFX() {
+        if (!this.workspaceId || !this.activePageId) return;
+        historyManager.recordState(this.activePageId);
+
+        this.isProcessing = true;
+
+        try {
+            const data = await apiDetectSFX(this.workspaceId, this.activePageId);
+            if (data.status === 'success') {
+                const page = this.activePage;
+                if (page) {
+                    page.bubbles = data.bubbles;
+                    page.detected = true;
+                    if (page.bubbles.length > 0) {
+                        this.activeBubbleId = page.bubbles[0].id;
+                    } else {
+                        this.activeBubbleId = null;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("SFX detection failed:", error);
+            alert("Failed to run AI SFX detection. Is your FastAPI server running?");
         } finally {
             this.isProcessing = false;
         }

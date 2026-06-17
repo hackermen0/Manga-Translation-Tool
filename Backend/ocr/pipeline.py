@@ -248,7 +248,7 @@ def _build_arg_parser():
     parser.add_argument(
         "--detector-model",
         default=str(
-            Path(__file__).resolve().parents[1] / "models" / "bubble_segmenter_best.pt"
+            Path(__file__).resolve().parents[1] / "models" / "speech_bubble_detector.pt"
         ),
         help="Path to speech bubble detector weights",
     )

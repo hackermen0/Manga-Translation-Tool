@@ -12,6 +12,7 @@ from config import WORKSPACES_DIR
 from models import BubblesPayload, StrokesPayload, InpaintPayload
 from dependencies import (
     bubble_detector,
+    text_detector,
     get_ocr_processor,
     get_manga_cleaner,
     get_manga_translator,
@@ -56,8 +57,101 @@ async def detect_bubbles(workspace_id: str, page_id: str):
                 "points": b["points"],
                 "ja_text": "",
                 "en_text": "",
+                "is_sfx": False,
             }
         )
+
+    target_page["bubbles"] = frontend_bubbles
+    target_page["detected"] = True
+
+    with open(state_file_path, "w", encoding="utf-8") as f:
+        json.dump(chapter_state, f, ensure_ascii=False, indent=2)
+
+    return {"status": "success", "bubbles": frontend_bubbles}
+
+
+@router.post("/{workspace_id}/page/{page_id}/detect-sfx")
+async def detect_sfx(workspace_id: str, page_id: str):
+    session_dir = WORKSPACES_DIR / workspace_id
+    state_file_path = session_dir / "chapter_data.json"
+
+    if not state_file_path.exists():
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    with open(state_file_path, "r", encoding="utf-8") as f:
+        chapter_state = json.load(f)
+
+    target_page = next(
+        (
+            p
+            for p in chapter_state["pages"]
+            if str(int(p["page_id"].replace("page_", ""))) == page_id
+        ),
+        None,
+    )
+
+    if not target_page:
+        raise HTTPException(status_code=404, detail="Page not found")
+
+    filename = Path(target_page["original_url"]).name
+    image_path = session_dir / "original" / filename
+
+    image_bgr = cv2.imread(str(image_path))
+    if image_bgr is None:
+        raise HTTPException(status_code=500, detail="Failed to load image")
+    h, w = image_bgr.shape[:2]
+
+    # 1. Run speech bubble detector (instance segmentation)
+    bubble_payload = bubble_detector.process_page(str(image_path), conf=0.2)
+
+    # 2. Build a combined speech bubble binary mask
+    combined_mask = np.zeros((h, w), dtype=np.uint8)
+    for b in bubble_payload["bubbles"]:
+        combined_mask = cv2.bitwise_or(combined_mask, b["mask"])
+
+    # 3. Mask out the speech bubble areas on a copy of the original image
+    masked_image = image_bgr.copy()
+    masked_image[combined_mask > 0] = [255, 255, 255] # Paint white over bubbles to remove speech text
+
+    # 4. Run the text detector (text_detector.onnx) on the masked image
+    text_results = text_detector.predict(source=masked_image, conf=0.25, verbose=False)[0]
+
+    # 5. Build combined bubbles list (speech bubbles + SFX boxes)
+    frontend_bubbles = []
+    
+    # Add speech bubbles first
+    for b in bubble_payload["bubbles"]:
+        frontend_bubbles.append(
+            {
+                "id": b["bubble_id"],
+                "points": b["points"],
+                "ja_text": "",
+                "en_text": "",
+                "is_sfx": False,
+            }
+        )
+
+    # Add SFX bounding boxes
+    next_id = len(frontend_bubbles) + 1
+    if text_results.boxes is not None:
+        for box in text_results.boxes:
+            x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
+            points = [
+                {"x": float(x1), "y": float(y1)},
+                {"x": float(x2), "y": float(y1)},
+                {"x": float(x2), "y": float(y2)},
+                {"x": float(x1), "y": float(y2)}
+            ]
+            frontend_bubbles.append(
+                {
+                    "id": next_id,
+                    "points": points,
+                    "ja_text": "",
+                    "en_text": "",
+                    "is_sfx": True,
+                }
+            )
+            next_id += 1
 
     target_page["bubbles"] = frontend_bubbles
     target_page["detected"] = True
@@ -203,7 +297,7 @@ async def run_page_inpaint(workspace_id: str, page_id: str, payload: InpaintPayl
     bubble_metadata = []
     
     for b in payload.bubbles:
-        if not b.points:
+        if not b.points or b.is_sfx:
             continue
             
         points = np.array([[pt.x, pt.y] for pt in b.points], dtype=np.int32)
@@ -220,7 +314,6 @@ async def run_page_inpaint(workspace_id: str, page_id: str, payload: InpaintPayl
         
         if payload.border_erosion > 0:
             kernel = np.ones((5, 5), np.uint8)
-            # Match detector.py logic: dilate by 1, erode by border_erosion
             mask = cv2.dilate(mask, kernel, iterations=1)
             mask = cv2.erode(mask, kernel, iterations=payload.border_erosion)
             

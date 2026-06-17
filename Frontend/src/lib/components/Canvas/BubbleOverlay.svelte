@@ -218,20 +218,20 @@
 					fill={showDeleteHighlight
 						? 'rgba(239, 68, 68, 0.3)'
 						: isSelected
-							? 'rgba(34, 197, 94, 0.3)'
+							? (bubble.is_sfx ? 'rgba(59, 130, 246, 0.3)' : 'rgba(34, 197, 94, 0.3)')
 							: isHovered
-								? 'rgba(255, 183, 150, 0.4)'
-								: 'rgba(255, 183, 150, 0.2)'}
+								? (bubble.is_sfx ? 'rgba(59, 130, 246, 0.4)' : 'rgba(255, 183, 150, 0.4)')
+								: (bubble.is_sfx ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 183, 150, 0.2)')}
 					stroke={showDeleteHighlight
 						? '#ef4444'
 						: isSelected
-							? '#22c55e'
+							? (bubble.is_sfx ? '#3b82f6' : '#22c55e')
 							: isHovered
-								? '#f97316'
-								: 'rgba(34, 197, 94, 0.6)'}
+								? (bubble.is_sfx ? '#2563eb' : '#f97316')
+								: (bubble.is_sfx ? 'rgba(59, 130, 246, 0.6)' : 'rgba(34, 197, 94, 0.6)')}
 					stroke-width={intrinsicWidth * (isSelected ? 0.0035 : 0.0025)}
 					class="transition-colors duration-150 {editorState.activeSession === 'translation'
-						? 'cursor-pointer hover:fill-green-100/30'
+						? (bubble.is_sfx ? 'cursor-pointer hover:fill-blue-100/30' : 'cursor-pointer hover:fill-green-100/30')
 						: editorState.activeDetectionTool === 'drag'
 							? 'cursor-move'
 							: editorState.activeDetectionTool === 'delete'
@@ -264,7 +264,7 @@
 						cy={point.y}
 						r={intrinsicWidth * 0.004}
 						fill="white"
-						stroke="#22c55e"
+						stroke={bubble.is_sfx ? '#3b82f6' : '#22c55e'}
 						stroke-width="2"
 						class="cursor-crosshair transition-transform hover:scale-150"
 						style="transform-origin: {point.x}px {point.y}px;"
