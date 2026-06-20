@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Scissors, MousePointer2, Move } from '@lucide/svelte';
+	import { Scissors, MousePointer2, Move, Type, Pencil, Trash2 } from '@lucide/svelte';
 	import { editorState, DEFAULT_TYPESET_STYLE } from '$lib/stores/Editor.svelte';
 	import type { MangaBubble, Point } from '$lib/stores/Editor.svelte';
 
@@ -200,6 +200,30 @@
 				title="Move Text Position"
 			>
 				<Move class="w-5 h-5" />
+			</button>
+
+			<button 
+				onclick={() => editorState.setTypesettingTool('text')}
+				class="p-2 rounded-lg transition-colors {editorState.activeTypesettingTool === 'text' ? 'bg-accent/15 text-accent' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}"
+				title="Add Text Box"
+			>
+				<Type class="w-5 h-5" />
+			</button>
+
+			<button 
+				onclick={() => editorState.setTypesettingTool('edit')}
+				class="p-2 rounded-lg transition-colors {editorState.activeTypesettingTool === 'edit' ? 'bg-accent/15 text-accent' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}"
+				title="Edit Text Box"
+			>
+				<Pencil class="w-5 h-5" />
+			</button>
+
+			<button 
+				onclick={() => editorState.setTypesettingTool('delete')}
+				class="p-2 rounded-lg transition-colors {editorState.activeTypesettingTool === 'delete' ? 'bg-red-100 text-red-600' : 'text-gray-500 hover:bg-red-50 hover:text-red-500'}"
+				title="Delete Text Box"
+			>
+				<Trash2 class="w-5 h-5" />
 			</button>
 
 			<div class="w-px h-6 bg-gray-300 my-auto mx-1"></div>

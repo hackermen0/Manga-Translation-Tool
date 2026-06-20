@@ -53,7 +53,7 @@
 
 			<Button
 				variant="outline"
-				class="flex w-full items-center justify-center gap-3 shadow-md border-purple-500 text-purple-600 hover:bg-purple-500/10 hover:text-purple-700"
+				class="border-accent hover:text-accent/70 flex w-full items-center justify-center gap-3 text-black shadow-md hover:bg-purple-500/10"
 				onclick={handleDetectSFXClick}
 				disabled={editorState.isProcessing}
 			>

@@ -83,13 +83,13 @@
         {#if activeId}
             {@const activePage = pages.find(p => p.pageId === activeId)}
             {#if activePage}
-                <div class="relative flex flex-col items-center flex-shrink-0 ring-4 ring-accent rounded-md scale-105 opacity-100 z-10 shadow-lg cursor-grabbing">
+                <div class="relative flex flex-col items-center flex-shrink-0 ring-4 ring-accent rounded-md scale-105 opacity-100 z-10 shadow-lg cursor-grabbing w-[210px]">
                     <img
                         src={`${BACKEND_URL}${editorState.activeSession === 'redrawing' && activePage.inpaintedUrl ? activePage.inpaintedUrl : activePage.originalUrl}`}
                         alt={activePage.originalFilename}
                         class="w-full h-auto object-cover rounded-sm bg-white pointer-events-none"
                     />
-                    <div class="bottom-0 w-full text-gray-500 text-xs py-1 text-center font-bold rounded-b-sm tracking-wider pointer-events-none">
+                    <div class="bottom-0 w-full text-gray-500 text-xs py-1 px-1 text-center font-bold rounded-b-sm tracking-wider pointer-events-none truncate">
                         {activePage.originalFilename}
                     </div>
                 </div>

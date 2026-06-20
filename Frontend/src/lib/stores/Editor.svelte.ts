@@ -44,7 +44,7 @@ class EditorState {
 
     activeDetectionTool = $state<'edit' | 'drag' | 'create' | 'delete'>('edit');
     activeRedrawingTool = $state<'pan' | 'eraser' | 'restore'>('pan');
-    activeTypesettingTool = $state<'select' | 'drag'>('select');
+    activeTypesettingTool = $state<'select' | 'drag' | 'text' | 'edit' | 'delete'>('select');
     brushSize = $state(20);
     brushColor = $state('#ffffff');
 
@@ -56,7 +56,7 @@ class EditorState {
         this.activeRedrawingTool = tool;
     }
 
-    setTypesettingTool(tool: 'select' | 'drag') {
+    setTypesettingTool(tool: 'select' | 'drag' | 'text' | 'edit' | 'delete') {
         this.activeTypesettingTool = tool;
     }
 

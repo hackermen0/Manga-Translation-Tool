@@ -39,6 +39,7 @@
         {isActivePage ? 'ring-4 ring-accent rounded-md scale-105 opacity-100 shadow-lg z-10' : 'ring-1 ring-gray-300 rounded-md opacity-60 hover:opacity-100 hover:scale-105'} 
         {isDragging.current ? 'invisible' : ''}"
         {onclick}
+        title={page.originalFilename}
     >
         <img
             src={`${BACKEND_URL}${editorState.activeSession === 'redrawing' && page.inpaintedUrl ? page.inpaintedUrl : page.originalUrl}`}
@@ -46,7 +47,7 @@
             class="w-full h-auto object-cover rounded-sm bg-white pointer-events-none"
             draggable="false"
         />
-        <div class="bottom-0 w-full text-gray-600 text-xs py-1 text-center font-bold rounded-b-sm tracking-wider pointer-events-none">
+        <div class="bottom-0 w-full text-gray-600 text-xs py-1 px-1 text-center font-bold rounded-b-sm tracking-wider pointer-events-none truncate">
             {page.originalFilename}
         </div>
     </button>

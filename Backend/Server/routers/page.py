@@ -101,25 +101,19 @@ async def detect_sfx(workspace_id: str, page_id: str):
         raise HTTPException(status_code=500, detail="Failed to load image")
     h, w = image_bgr.shape[:2]
 
-    # 1. Run speech bubble detector (instance segmentation)
     bubble_payload = bubble_detector.process_page(str(image_path), conf=0.2)
 
-    # 2. Build a combined speech bubble binary mask
     combined_mask = np.zeros((h, w), dtype=np.uint8)
     for b in bubble_payload["bubbles"]:
         combined_mask = cv2.bitwise_or(combined_mask, b["mask"])
 
-    # 3. Mask out the speech bubble areas on a copy of the original image
     masked_image = image_bgr.copy()
-    masked_image[combined_mask > 0] = [255, 255, 255] # Paint white over bubbles to remove speech text
+    masked_image[combined_mask > 0] = [255, 255, 255]
 
-    # 4. Run the text detector (text_detector.onnx) on the masked image
     text_results = text_detector.predict(source=masked_image, conf=0.25, verbose=False)[0]
 
-    # 5. Build combined bubbles list (speech bubbles + SFX boxes)
     frontend_bubbles = []
     
-    # Add speech bubbles first
     for b in bubble_payload["bubbles"]:
         frontend_bubbles.append(
             {
@@ -131,7 +125,6 @@ async def detect_sfx(workspace_id: str, page_id: str):
             }
         )
 
-    # Add SFX bounding boxes
     next_id = len(frontend_bubbles) + 1
     if text_results.boxes is not None:
         for box in text_results.boxes:
