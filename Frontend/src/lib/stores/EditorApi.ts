@@ -132,6 +132,24 @@ export async function apiRunInpainting(workspaceId: string, pageId: string, bubb
 }
 
 /**
+ * Runs image inpainting inside SFX text zones on a target page.
+ */
+export async function apiRunSFXInpainting(workspaceId: string, pageId: string, bubbles: MangaBubble[], borderErosion: number): Promise<any> {
+    const response = await fetch(`${BACKEND_URL}/api/workspace/${workspaceId}/page/${pageId}/inpaint-sfx`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            bubbles,
+            border_erosion: borderErosion
+        })
+    });
+    if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
+    }
+    return response.json();
+}
+
+/**
  * Saves current typesetting/typeset configuration properties.
  */
 export async function apiSaveTypesetting(workspaceId: string, pageId: string, bubbles: MangaBubble[]): Promise<any> {

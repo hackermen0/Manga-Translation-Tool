@@ -53,6 +53,17 @@
 				historyManager.redo();
 			}
 		}
+
+		// Brush size hotkeys: [ decreases, ] increases by 2px
+		if (!isInput && editorState.activeSession === 'redrawing') {
+			if (e.key === '[') {
+				e.preventDefault();
+				editorState.brushSize = Math.max(1, editorState.brushSize - 2);
+			} else if (e.key === ']') {
+				e.preventDefault();
+				editorState.brushSize = Math.min(200, editorState.brushSize + 2);
+			}
+		}
 	}
 </script>
 

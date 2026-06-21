@@ -43,3 +43,29 @@ def get_manga_translator():
     if manga_translator is None:
         manga_translator = MangaTranslationEngine()
     return manga_translator
+
+
+lama_session = None
+
+def get_lama_session():
+    global lama_session
+    if lama_session is None:
+        import onnxruntime as ort
+        import torch
+        
+        # Paths to the model files
+        model_dir = Path(__file__).resolve().parent.parent / "models"
+        onnx_path = model_dir / "lama_manga_dynamic.onnx"
+        
+        if not onnx_path.exists():
+            import urllib.request
+            print("Downloading LaMa ONNX model...")
+            url = "https://huggingface.co/Carve/LaMa-ONNX/resolve/main/lama_fp32.onnx"
+            urllib.request.urlretrieve(url, str(onnx_path))
+            print("LaMa ONNX model download complete!")
+            
+        providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'] if torch.cuda.is_available() else ['CPUExecutionProvider']
+        print(f"Initializing LaMa InferenceSession with providers: {providers}")
+        lama_session = ort.InferenceSession(str(onnx_path), providers=providers)
+        
+    return lama_session

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Hand, Eraser, Undo2, History } from '@lucide/svelte';
+	import { Hand, Eraser, Undo2, History, Bandage } from '@lucide/svelte';
 	import { editorState } from '$lib/stores/Editor.svelte';
 
 	const presetColors = [
@@ -54,6 +54,16 @@
 			<History class="h-5 w-5" />
 		</button>
 
+		<button
+			onclick={() => editorState.setRedrawingTool('heal')}
+			class="rounded-lg p-2 transition-colors {editorState.activeRedrawingTool === 'heal'
+				? 'bg-emerald-100 text-emerald-600'
+				: 'text-gray-500 hover:bg-emerald-50 hover:text-emerald-500'}"
+			title="Heal Tool (Smart Patch — Ctrl+Click to set source)"
+		>
+			<Bandage class="h-5 w-5" />
+		</button>
+
 		<div class="mx-1 my-auto h-6 w-px bg-gray-300"></div>
 
 		<!-- Brush size slider -->
@@ -102,6 +112,48 @@
 						style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);"
 					></div>
 				</div>
+			</div>
+		{/if}
+
+		<!-- Hardness slider (only visible for heal tool) -->
+		{#if editorState.activeRedrawingTool === 'heal'}
+			<div class="mx-1 my-auto h-6 w-px bg-gray-300"></div>
+
+			<div class="flex w-24 flex-col gap-1 px-1">
+				<div class="flex w-full items-center justify-between">
+					<span class="text-xs font-medium text-gray-500">Hardness</span>
+					<span class="text-xs font-bold text-emerald-600">{Math.round(editorState.healBrushHardness * 100)}%</span>
+				</div>
+				<input
+					type="range"
+					min="0"
+					max="100"
+					value={Math.round(editorState.healBrushHardness * 100)}
+					oninput={(e) => { editorState.healBrushHardness = parseInt(e.currentTarget.value) / 100; }}
+					class="accent-emerald-500 h-1 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
+				/>
+			</div>
+
+			<div class="mx-1 my-auto h-6 w-px bg-gray-300"></div>
+
+			<!-- Source mode badge -->
+			<div class="flex items-center gap-1.5 px-1">
+				<span
+					class="rounded-full px-2 py-0.5 text-xs font-semibold {editorState.healSourceMode === 'manual'
+						? 'bg-amber-100 text-amber-700'
+						: 'bg-emerald-100 text-emerald-700'}"
+				>
+					{editorState.healSourceMode === 'manual' ? 'Manual' : 'Auto'}
+				</span>
+				{#if editorState.healSourceMode === 'manual' && editorState.healSourceAnchor}
+					<button
+						onclick={() => { editorState.healSourceMode = 'auto'; editorState.healSourceAnchor = null; }}
+						class="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+						title="Reset to auto mode"
+					>
+						✕
+					</button>
+				{/if}
 			</div>
 		{/if}
 

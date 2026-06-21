@@ -1,12 +1,27 @@
 <script lang="ts">
-	import { Eraser, Loader2, ScanText } from '@lucide/svelte';
+	import { Eraser, Loader2, ScanText, Sparkles } from '@lucide/svelte';
 	import { Button, editorState } from '$lib';
 	import { Separator } from 'bits-ui';
 
 	let borderErosion = $state(2);
+	let processingType = $state<'bubbles' | 'sfx' | null>(null);
 
 	async function handleAutoClear() {
-		await editorState.runInpainting(borderErosion);
+		processingType = 'bubbles';
+		try {
+			await editorState.runInpainting(borderErosion);
+		} finally {
+			processingType = null;
+		}
+	}
+
+	async function handleAutoClearSFX() {
+		processingType = 'sfx';
+		try {
+			await editorState.runSFXInpainting(borderErosion);
+		} finally {
+			processingType = null;
+		}
 	}
 
 	async function handleDetectClick() {
@@ -72,11 +87,26 @@
 					onclick={handleAutoClear}
 					disabled={editorState.isProcessing}
 				>
-					{#if editorState.isProcessing}
+					{#if editorState.isProcessing && processingType === 'bubbles'}
 						<Loader2 class="h-4 w-4 animate-spin" />
 						Clearing Bubbles...
 					{:else}
 						Auto Clear Bubbles
+					{/if}
+				</Button>
+
+				<Button
+					variant="outline"
+					class="border-accent hover:text-accent/70 flex w-full items-center justify-center gap-3 text-black shadow-md hover:bg-purple-500/10"
+					onclick={handleAutoClearSFX}
+					disabled={editorState.isProcessing}
+				>
+					{#if editorState.isProcessing && processingType === 'sfx'}
+						<Loader2 class="h-4 w-4 animate-spin" />
+						Clearing SFX...
+					{:else}
+						<Sparkles class="h-4 w-4" />
+						Auto Clear SFX
 					{/if}
 				</Button>
 			</div>

@@ -81,41 +81,85 @@ async def detect_sfx(
         # 4. Run the text detector (model.onnx renamed to text_detector.onnx) on the masked image
         text_results = text_model.predict(source=masked_image, conf=conf, verbose=False)[0]
         
-        # 5. Draw the bounding boxes of the remaining text (only SFX) on the ORIGINAL image
-        annotated_img = image_bgr.copy()
-        num_sfx = 0
-        
+        # Extract speech bubble masks for the geometry subtraction step
+        bubble_masks = []
+        if bubble_results.masks is not None:
+            for mask in bubble_results.masks.data:
+                mask_np = mask.cpu().numpy()
+                mask_resized = cv2.resize(
+                    mask_np, (w, h), interpolation=cv2.INTER_LINEAR
+                )
+                binary_mask = (mask_resized > 0.1).astype(np.uint8) * 255
+                bubble_masks.append(binary_mask)
+                
+        # Extract raw text bounding boxes
+        yolo_boxes = []
         if text_results.boxes is not None:
             for box in text_results.boxes:
-                x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
-                score = float(box.conf[0].cpu().numpy())
+                x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(float)
+                yolo_boxes.append([x1, y1, x2, y2])
                 
-                # Draw bounding box (vibrant violet-purple color)
-                color = (180, 80, 240) # BGR
-                cv2.rectangle(annotated_img, (x1, y1), (x2, y2), color, 2)
-                
-                # Draw a clean background panel for label text
-                label = f"SFX {score:.2f}"
-                (w_label, h_label), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
-                cv2.rectangle(
-                    annotated_img, 
-                    (x1, max(0, y1 - h_label - 6)), 
-                    (x1 + w_label + 4, max(0, y1)), 
-                    color, 
-                    -1
-                )
-                cv2.putText(
-                    annotated_img, 
-                    label, 
-                    (x1 + 2, max(0, y1 - 3)), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 
-                    0.4, 
-                    (255, 255, 255), 
-                    1, 
-                    cv2.LINE_AA
-                )
-                num_sfx += 1
-                
+        # Run local binarization & noise-filtering pipeline
+        import sys
+        from pathlib import Path
+        sys.path.append(str(Path(__file__).resolve().parent.parent))
+        from sfx_detection.masker import extract_sfx_mask_and_contours
+        
+        mask_res = extract_sfx_mask_and_contours(
+            image_bgr=image_bgr,
+            speech_bubble_masks=bubble_masks,
+            yolo_boxes=yolo_boxes,
+            padding=8,
+            block_size=11,
+            C=2,
+            min_area=5,
+            dilation_kernel_size=3,
+            overlap_threshold=0.05
+        )
+        
+        sfx_regions = mask_res["sfx_regions"]
+        master_mask = mask_res["master_mask"]
+        
+        # 5. Draw the bounding boxes and vector polygons of the remaining text on the ORIGINAL image
+        annotated_img = image_bgr.copy()
+        num_sfx = len(sfx_regions)
+        
+        # Overlay the pixel-perfect stroke mask on the annotated preview in semi-transparent violet
+        stroke_overlay = annotated_img.copy()
+        stroke_overlay[master_mask > 0] = [240, 80, 180] # BGR Violet-pink
+        annotated_img = cv2.addWeighted(stroke_overlay, 0.4, annotated_img, 0.6, 0)
+        
+        for sfx in sfx_regions:
+            x1, y1, x2, y2 = map(int, sfx["bbox"])
+            pts = np.array([[int(pt["x"]), int(pt["y"])] for pt in sfx["points"]], dtype=np.int32)
+            
+            # Draw boundary polygon of the hull
+            cv2.polylines(annotated_img, [pts], isClosed=True, color=(240, 80, 180), thickness=2)
+            
+            # Draw bounding box outline
+            cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (240, 80, 180), 1)
+            
+            # Draw a clean background panel for label text
+            label = "SFX"
+            (w_label, h_label), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 1)
+            cv2.rectangle(
+                annotated_img, 
+                (x1, max(0, y1 - h_label - 6)), 
+                (x1 + w_label + 4, max(0, y1)), 
+                (240, 80, 180), 
+                -1
+            )
+            cv2.putText(
+                annotated_img, 
+                label, 
+                (x1 + 2, max(0, y1 - 3)), 
+                cv2.FONT_HERSHEY_SIMPLEX, 
+                0.4, 
+                (255, 255, 255), 
+                1, 
+                cv2.LINE_AA
+            )
+            
         # Encode annotated image as PNG
         success, img_encoded = cv2.imencode(".png", annotated_img)
         if not success:

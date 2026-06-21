@@ -19,6 +19,7 @@ import {
     apiSaveBubbles,
     apiSaveRedrawingStrokes,
     apiRunInpainting,
+    apiRunSFXInpainting,
     apiSaveTypesetting
 } from './EditorApi';
 
@@ -43,7 +44,10 @@ class EditorState {
     pages = $state<MangaPage[]>([]);
 
     activeDetectionTool = $state<'edit' | 'drag' | 'create' | 'delete'>('edit');
-    activeRedrawingTool = $state<'pan' | 'eraser' | 'restore'>('pan');
+    activeRedrawingTool = $state<'pan' | 'eraser' | 'restore' | 'heal'>('pan');
+    healBrushHardness = $state(0.75);
+    healSourceMode = $state<'auto' | 'manual'>('auto');
+    healSourceAnchor = $state<{ x: number; y: number } | null>(null);
     activeTypesettingTool = $state<'select' | 'drag' | 'text' | 'edit' | 'delete'>('select');
     brushSize = $state(20);
     brushColor = $state('#ffffff');
@@ -52,8 +56,13 @@ class EditorState {
         this.activeDetectionTool = tool;
     }
 
-    setRedrawingTool(tool: 'pan' | 'eraser' | 'restore') {
+    setRedrawingTool(tool: 'pan' | 'eraser' | 'restore' | 'heal') {
         this.activeRedrawingTool = tool;
+        // Reset heal source anchor when switching away from heal tool
+        if (tool !== 'heal') {
+            this.healSourceAnchor = null;
+            this.healSourceMode = 'auto';
+        }
     }
 
     setTypesettingTool(tool: 'select' | 'drag' | 'text' | 'edit' | 'delete') {
@@ -336,6 +345,28 @@ class EditorState {
         } catch (error) {
             console.error("Inpainting failed:", error);
             alert("Failed to run inpainting. Is your FastAPI server running?");
+        } finally {
+            this.isProcessing = false;
+        }
+    }
+
+    async runSFXInpainting(borderErosion: number = 2) {
+        if (!this.workspaceId || !this.activePageId || !this.activePage) return;
+        historyManager.recordState(this.activePageId);
+
+        this.isProcessing = true;
+
+        try {
+            const data = await apiRunSFXInpainting(this.workspaceId, this.activePageId, this.activePage.bubbles, borderErosion);
+            if (data.status === 'success') {
+                const page = this.activePage;
+                if (page) {
+                    page.inpaintedUrl = data.inpainted_url + "?t=" + Date.now();
+                }
+            }
+        } catch (error) {
+            console.error("SFX Inpainting failed:", error);
+            alert("Failed to run SFX inpainting. Is your FastAPI server running?");
         } finally {
             this.isProcessing = false;
         }

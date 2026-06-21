@@ -8,6 +8,7 @@
 	import BubbleOverlay from './BubbleOverlay.svelte';
 	import DetectionToolbar from './Toolbar/DetectionToolbar.svelte';
 	import RedrawingOverlay from './RedrawingOverlay.svelte';
+	import HealingOverlay from './HealingOverlay.svelte';
 	import RedrawingToolbar from './Toolbar/RedrawingToolbar.svelte';
 	import TypesettingOverlay from './TypesettingOverlay.svelte';
 	import TypesettingToolbar from './Toolbar/TypesettingToolbar.svelte';
@@ -865,6 +866,10 @@
 
 				{#if editorState.activeSession === 'redrawing' || editorState.activeSession === 'typesetting'}
 					<RedrawingOverlay
+						intrinsicWidth={canvasDimensions.width}
+						intrinsicHeight={canvasDimensions.height}
+					/>
+					<HealingOverlay
 						intrinsicWidth={canvasDimensions.width}
 						intrinsicHeight={canvasDimensions.height}
 					/>
