@@ -20,6 +20,11 @@ class TypesetStyleModel(BaseModel):
     textAlign: str = "center"
     letterSpacing: float = 0.5
     autoFit: bool = True
+    fontStyle: str | None = "normal"
+    writingMode: str | None = "horizontal"
+    outline: bool | None = False
+    outlineColor: str | None = "#ffffff"
+    outlineWidth: float | None = 2.0
 
 
 class BubbleUpdateModel(BaseModel):

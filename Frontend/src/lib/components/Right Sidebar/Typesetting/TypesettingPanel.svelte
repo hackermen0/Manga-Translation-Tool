@@ -546,10 +546,10 @@
 						</div>
 					</div>
 				</div>
-				<!-- Text Outline / Glow Row -->
-				<div class="flex flex-row items-center justify-between gap-3 px-1">
-					<div class="flex flex-col gap-2">
-						<p class="text-sm font-semibold text-black">Text Outline / Glow</p>
+				<!-- Text Border Section -->
+				<div class="flex flex-col gap-3 px-1">
+					<div class="flex items-center justify-between">
+						<p class="text-sm font-semibold text-black">Text Border</p>
 						<label class="flex cursor-pointer items-center gap-2 text-xs text-gray-500 select-none">
 							<input
 								type="checkbox"
@@ -571,37 +571,73 @@
 								}}
 								class="accent-accent h-4 w-4 rounded"
 							/>
-							Enable glow outline
+							Enable border
 						</label>
 					</div>
 
 					{#if typeset.outline}
-						<div class="flex flex-col gap-2">
-							<p class="text-xs font-semibold text-gray-500">Outline Color</p>
-							<div class="flex items-center gap-2">
-								<input
-									type="color"
-									value={typeset.outlineColor ?? '#ffffff'}
-									onpointerdown={startStyleChange}
-									onchange={endStyleChange}
-									oninput={(e) => {
-										if (editorState.activePage && activeBubbleIndex >= 0) {
-											if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
-												editorState.activePage.bubbles[activeBubbleIndex].typeset = {
-													...DEFAULT_TYPESET_STYLE
-												};
+						<div class="flex flex-row gap-4">
+							<!-- Border Size Slider -->
+							<div class="flex flex-1 flex-col gap-1.5">
+								<div class="flex items-center justify-between">
+									<span class="text-xs font-semibold text-gray-500">Border Size</span>
+									<span class="text-accent text-xs font-bold">{typeset.outlineWidth ?? 2}px</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<input
+										type="range"
+										min="1"
+										max="15"
+										step="0.5"
+										value={typeset.outlineWidth ?? 2}
+										onpointerdown={startStyleChange}
+										onchange={endStyleChange}
+										oninput={(e) => {
+											if (editorState.activePage && activeBubbleIndex >= 0) {
+												if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
+													editorState.activePage.bubbles[activeBubbleIndex].typeset = {
+														...DEFAULT_TYPESET_STYLE
+													};
+												}
+												editorState.activePage.bubbles[activeBubbleIndex].typeset!.outlineWidth = Number(
+													(e.target as HTMLInputElement).value
+												);
+												handleStyleChange();
 											}
-											editorState.activePage.bubbles[activeBubbleIndex].typeset!.outlineColor = (
-												e.target as HTMLInputElement
-											).value;
-											handleStyleChange();
-										}
-									}}
-									class="h-8 w-8 cursor-pointer rounded-lg border border-gray-200 p-0.5"
-								/>
-								<span class="text-xs font-medium text-gray-500"
-									>{typeset.outlineColor ?? '#ffffff'}</span
-								>
+										}}
+										class="accent-accent w-full"
+									/>
+								</div>
+							</div>
+
+							<!-- Border Color Picker -->
+							<div class="flex flex-col gap-1.5">
+								<span class="text-xs font-semibold text-gray-500">Border Color</span>
+								<div class="flex items-center gap-2">
+									<input
+										type="color"
+										value={typeset.outlineColor ?? '#ffffff'}
+										onpointerdown={startStyleChange}
+										onchange={endStyleChange}
+										oninput={(e) => {
+											if (editorState.activePage && activeBubbleIndex >= 0) {
+												if (!editorState.activePage.bubbles[activeBubbleIndex].typeset) {
+													editorState.activePage.bubbles[activeBubbleIndex].typeset = {
+														...DEFAULT_TYPESET_STYLE
+													};
+												}
+												editorState.activePage.bubbles[activeBubbleIndex].typeset!.outlineColor = (
+													e.target as HTMLInputElement
+												).value;
+												handleStyleChange();
+											}
+										}}
+										class="h-8 w-8 cursor-pointer rounded-lg border border-gray-200 p-0.5"
+									/>
+									<span class="text-xs font-medium text-gray-500"
+										>{typeset.outlineColor ?? '#ffffff'}</span
+									>
+								</div>
 							</div>
 						</div>
 					{/if}

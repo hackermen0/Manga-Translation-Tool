@@ -18,6 +18,7 @@ export interface TypesetStyle {
     writingMode?: 'horizontal' | 'vertical';
     outline?: boolean;
     outlineColor?: string;
+    outlineWidth?: number;
 }
 
 export const DEFAULT_TYPESET_STYLE: TypesetStyle = {
@@ -34,7 +35,8 @@ export const DEFAULT_TYPESET_STYLE: TypesetStyle = {
     fontStyle: 'normal',
     writingMode: 'horizontal',
     outline: false,
-    outlineColor: '#ffffff'
+    outlineColor: '#ffffff',
+    outlineWidth: 2
 };
 
 export interface MangaBubble {
@@ -50,7 +52,10 @@ export interface RedrawingStroke {
     points: Point[];
     brushSize: number;
     brushColor: string;
-    type: 'eraser' | 'restore';
+    type: 'eraser' | 'restore' | 'heal';
+    hardness?: number;
+    sourceMode?: 'auto' | 'manual';
+    sourceAnchor?: Point | null;
 }
 
 export interface MangaPage {

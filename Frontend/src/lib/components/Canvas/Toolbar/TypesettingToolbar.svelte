@@ -189,7 +189,7 @@
 			<button 
 				onclick={() => editorState.setTypesettingTool('select')}
 				class="p-2 rounded-lg transition-colors {editorState.activeTypesettingTool === 'select' ? 'bg-accent/15 text-accent' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}"
-				title="Select Bubble / Edit Text"
+				title="Select Bubble"
 			>
 				<MousePointer2 class="w-5 h-5" />
 			</button>
@@ -213,7 +213,7 @@
 			<button 
 				onclick={() => editorState.setTypesettingTool('edit')}
 				class="p-2 rounded-lg transition-colors {editorState.activeTypesettingTool === 'edit' ? 'bg-accent/15 text-accent' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}"
-				title="Edit Text Box"
+				title="Edit Bubble Outline"
 			>
 				<Pencil class="w-5 h-5" />
 			</button>

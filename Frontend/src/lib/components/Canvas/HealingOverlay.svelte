@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { editorState } from '$lib';
+	import { editorState, historyManager } from '$lib';
 	import {
 		healPatch,
 		applyHealResult,
 		findAutoSourceOffset,
 		type HealResult
 	} from '$lib/stores/HealEngine';
-	import { onMount, tick } from 'svelte';
+	import type { RedrawingStroke } from '$lib/stores/EditorTypes';
 
 	let { intrinsicWidth, intrinsicHeight } = $props<{
 		intrinsicWidth: number;
@@ -17,16 +17,17 @@
 
 	// ─── Canvas References ──────────────────────────────────────────────────
 	let containerDiv: HTMLDivElement;
-	let displayCanvas = $state<HTMLCanvasElement | undefined>(undefined); // Shows the composited result
-	let cursorCanvas = $state<HTMLCanvasElement | undefined>(undefined); // Real-time brush HUD
+	let displayCanvas = $state<HTMLCanvasElement | undefined>(undefined);
+	let cursorCanvas = $state<HTMLCanvasElement | undefined>(undefined);
 
 	// ─── Internal Buffers (not DOM-mounted) ─────────────────────────────────
-	let originalPageCanvas: HTMLCanvasElement | null = null; // Immutable background
-	let editOverlayCanvas: HTMLCanvasElement | null = null; // Dynamic edit layer
+	let originalPageCanvas: HTMLCanvasElement | null = null;
+	let editOverlayCanvas: HTMLCanvasElement | null = null;
+	let originalImageData: Uint8ClampedArray | null = null;
+	let activeOverlayImageData: ImageData | null = null;
 
-	// ─── Undo Stack ─────────────────────────────────────────────────────────
-	let undoStack: ImageData[] = [];
-	const MAX_UNDO = 30;
+	// ─── Global Snapshot Tracking ───────────────────────────────────────────
+	let pendingSnapshot: any = null;
 
 	// ─── State ──────────────────────────────────────────────────────────────
 	let isDrawing = $state(false);
@@ -35,63 +36,60 @@
 	let showCursor = $state(false);
 	let isReady = $state(false);
 	let strokePoints: { x: number; y: number }[] = [];
-
-	// Source indicator for manual mode
 	let sourceIndicatorX = $state(0);
 	let sourceIndicatorY = $state(0);
 	let showSourceIndicator = $state(false);
 
 	// ─── Derived ────────────────────────────────────────────────────────────
 	let isHealTool = $derived(editorState.activeRedrawingTool === 'heal');
-	let isActive = $derived(
-		(editorState.activeSession === 'redrawing') && isHealTool
+	let isSessionActive = $derived(
+		editorState.activeSession === 'redrawing' ||
+			editorState.activeSession === 'typesetting' ||
+			editorState.activeSession === 'quality'
 	);
+	let isActive = $derived(editorState.activeSession === 'redrawing' && isHealTool);
 
 	// ─── Image Loading ──────────────────────────────────────────────────────
 
 	let lastLoadedPageId: string | null = null;
+	let lastLoadedUrl: string | null = null;
 
 	$effect(() => {
 		const page = editorState.activePage;
-		if (!page || !isActive) return;
+		if (!page || !isSessionActive) return;
 
 		const pageId = page.pageId;
-		const inpaintedUrl = page.inpaintedUrl;
-		const originalUrl = page.originalUrl;
+		const targetUrl = page.inpaintedUrl ?? page.originalUrl;
 
-		// Reload when page changes
-		if (pageId !== lastLoadedPageId) {
+		if (pageId !== lastLoadedPageId || targetUrl !== lastLoadedUrl) {
 			lastLoadedPageId = pageId;
-			loadPageImage(inpaintedUrl ?? originalUrl);
+			lastLoadedUrl = targetUrl;
+			loadPageImage(targetUrl);
 		}
 	});
 
 	function loadPageImage(imageUrl: string) {
 		isReady = false;
+		originalImageData = null;
 		const img = new Image();
 		img.crossOrigin = 'anonymous';
 		img.onload = () => {
 			const w = img.naturalWidth;
 			const h = img.naturalHeight;
 
-			// Create immutable original buffer
 			originalPageCanvas = document.createElement('canvas');
 			originalPageCanvas.width = w;
 			originalPageCanvas.height = h;
 			const origCtx = originalPageCanvas.getContext('2d')!;
 			origCtx.drawImage(img, 0, 0);
+			originalImageData = origCtx.getImageData(0, 0, w, h).data;
 
-			// Create dynamic edit overlay (starts as a copy of the original)
 			editOverlayCanvas = document.createElement('canvas');
 			editOverlayCanvas.width = w;
 			editOverlayCanvas.height = h;
 			const editCtx = editOverlayCanvas.getContext('2d')!;
 			editCtx.drawImage(img, 0, 0);
 
-			// Clear undo stack for new page
-			undoStack = [];
-
-			// Render initial display
 			renderDisplay();
 			isReady = true;
 		};
@@ -111,6 +109,103 @@
 		ctx.drawImage(editOverlayCanvas, 0, 0);
 	}
 
+	function resetCanvas() {
+		if (!editOverlayCanvas || !originalPageCanvas) return;
+		const editCtx = editOverlayCanvas.getContext('2d')!;
+		editCtx.drawImage(originalPageCanvas, 0, 0);
+	}
+
+	function applyHealStroke(
+		stroke: RedrawingStroke,
+		originalData: Uint8ClampedArray,
+		overlayImageData: ImageData
+	) {
+		if (!originalPageCanvas || !editOverlayCanvas) return;
+
+		const w = originalPageCanvas.width;
+		const h = originalPageCanvas.height;
+		const radius = stroke.brushSize / 2;
+		const hardness = stroke.hardness ?? 0.75;
+		const sourceMode = stroke.sourceMode ?? 'auto';
+		const sourceAnchor = stroke.sourceAnchor ?? null;
+
+		const overlayData = overlayImageData.data;
+
+		stroke.points.forEach((coords) => {
+			let sourceX: number;
+			let sourceY: number;
+
+			if (sourceMode === 'manual' && sourceAnchor) {
+				const firstPoint = stroke.points[0];
+				const offsetX = sourceAnchor.x - firstPoint.x;
+				const offsetY = sourceAnchor.y - firstPoint.y;
+				sourceX = coords.x + offsetX;
+				sourceY = coords.y + offsetY;
+			} else {
+				const autoSource = findAutoSourceOffset(
+					originalData,
+					Math.round(coords.x),
+					Math.round(coords.y),
+					Math.round(radius),
+					w,
+					h
+				);
+				sourceX = autoSource.sourceX;
+				sourceY = autoSource.sourceY;
+			}
+
+			sourceX = Math.max(radius + 1, Math.min(w - radius - 1, sourceX));
+			sourceY = Math.max(radius + 1, Math.min(h - radius - 1, sourceY));
+
+			const result = healPatch(
+				originalData,
+				overlayData,
+				sourceX,
+				sourceY,
+				coords.x,
+				coords.y,
+				Math.round(radius),
+				hardness,
+				w,
+				h
+			);
+
+			if (result) {
+				applyHealResult(overlayImageData.data, w, result);
+			}
+		});
+	}
+
+	let lastStrokesJson = '';
+
+	$effect(() => {
+		const page = editorState.activePage;
+		if (!page || !isReady || !editOverlayCanvas || !originalPageCanvas || !originalImageData)
+			return;
+
+		const currentStrokesJson = JSON.stringify(page.redrawingStrokes);
+		if (currentStrokesJson === lastStrokesJson) return;
+		lastStrokesJson = currentStrokesJson;
+
+		resetCanvas();
+
+		const healStrokes = page.redrawingStrokes.filter((s) => s.type === 'heal');
+		if (healStrokes.length > 0) {
+			const editCtx = editOverlayCanvas.getContext('2d')!;
+			const w = editOverlayCanvas.width;
+			const h = editOverlayCanvas.height;
+			const overlayImageData = editCtx.getImageData(0, 0, w, h);
+
+			healStrokes.forEach((stroke) => {
+				applyHealStroke(stroke, originalImageData!, overlayImageData);
+			});
+
+			editCtx.putImageData(overlayImageData, 0, 0);
+		}
+
+		renderDisplay();
+	});
+
 	// ─── Cursor HUD Rendering ───────────────────────────────────────────────
 
 	function renderCursorHUD() {
@@ -124,21 +219,18 @@
 		const r = editorState.brushSize / 2;
 		const lineW = Math.max(1, intrinsicWidth * 0.001);
 
-		// Destination brush circle
 		ctx.beginPath();
 		ctx.arc(cursorX, cursorY, r, 0, Math.PI * 2);
-		ctx.strokeStyle = '#10b981'; // emerald-500
+		ctx.strokeStyle = '#10b981';
 		ctx.lineWidth = lineW;
 		ctx.setLineDash([Math.max(2, intrinsicWidth * 0.003), Math.max(2, intrinsicWidth * 0.003)]);
 		ctx.stroke();
 
-		// Center dot
 		ctx.beginPath();
 		ctx.arc(cursorX, cursorY, Math.max(1, intrinsicWidth * 0.0015), 0, Math.PI * 2);
 		ctx.fillStyle = '#10b981';
 		ctx.fill();
 
-		// Hardness inner ring
 		const innerR = r * editorState.healBrushHardness;
 		if (editorState.healBrushHardness < 0.95) {
 			ctx.beginPath();
@@ -151,19 +243,16 @@
 
 		ctx.setLineDash([]);
 
-		// Source indicator in manual mode
 		if (showSourceIndicator && editorState.healSourceMode === 'manual') {
-			// Source crosshair
 			const crossSize = r * 0.4;
 			ctx.beginPath();
 			ctx.arc(sourceIndicatorX, sourceIndicatorY, r, 0, Math.PI * 2);
-			ctx.strokeStyle = '#f59e0b'; // amber-500
+			ctx.strokeStyle = '#f59e0b';
 			ctx.lineWidth = lineW;
 			ctx.setLineDash([Math.max(2, intrinsicWidth * 0.003), Math.max(2, intrinsicWidth * 0.003)]);
 			ctx.stroke();
 			ctx.setLineDash([]);
 
-			// Cross inside source circle
 			ctx.beginPath();
 			ctx.moveTo(sourceIndicatorX - crossSize, sourceIndicatorY);
 			ctx.lineTo(sourceIndicatorX + crossSize, sourceIndicatorY);
@@ -173,7 +262,6 @@
 			ctx.lineWidth = lineW * 1.5;
 			ctx.stroke();
 
-			// Connecting line from source to dest
 			ctx.beginPath();
 			ctx.moveTo(sourceIndicatorX, sourceIndicatorY);
 			ctx.lineTo(cursorX, cursorY);
@@ -198,27 +286,6 @@
 		};
 	}
 
-	// ─── Undo Support ───────────────────────────────────────────────────────
-
-	function pushUndoSnapshot() {
-		if (!editOverlayCanvas) return;
-		const ctx = editOverlayCanvas.getContext('2d')!;
-		const snapshot = ctx.getImageData(0, 0, editOverlayCanvas.width, editOverlayCanvas.height);
-		undoStack.push(snapshot);
-		if (undoStack.length > MAX_UNDO) {
-			undoStack.shift();
-		}
-	}
-
-	export function undoLastHeal(): boolean {
-		if (undoStack.length === 0 || !editOverlayCanvas) return false;
-		const snapshot = undoStack.pop()!;
-		const ctx = editOverlayCanvas.getContext('2d')!;
-		ctx.putImageData(snapshot, 0, 0);
-		renderDisplay();
-		return true;
-	}
-
 	// ─── Pointer Event Handlers ─────────────────────────────────────────────
 
 	function handlePointerDown(e: PointerEvent) {
@@ -227,7 +294,6 @@
 
 		const coords = getIntrinsicCoordinates(e.clientX, e.clientY);
 
-		// Ctrl+Click: Set manual source anchor
 		if (e.ctrlKey) {
 			editorState.healSourceMode = 'manual';
 			editorState.healSourceAnchor = { x: coords.x, y: coords.y };
@@ -235,15 +301,23 @@
 			sourceIndicatorY = coords.y;
 			showSourceIndicator = true;
 			renderCursorHUD();
-			return; // Don't start a stroke
+			return;
 		}
 
-		// Begin heal stroke
 		isDrawing = true;
 		strokePoints = [coords];
 
-		// Push undo snapshot before modifications
-		pushUndoSnapshot();
+		if (editOverlayCanvas) {
+			const editCtx = editOverlayCanvas.getContext('2d')!;
+			activeOverlayImageData = editCtx.getImageData(
+				0,
+				0,
+				editOverlayCanvas.width,
+				editOverlayCanvas.height
+			);
+		}
+
+		pendingSnapshot = historyManager.captureSnapshot(editorState.activePageId!);
 	}
 
 	function handlePointerMove(e: PointerEvent) {
@@ -253,10 +327,8 @@
 		cursorX = coords.x;
 		cursorY = coords.y;
 
-		// Update source indicator position in manual mode (lockstep offset)
 		if (editorState.healSourceMode === 'manual' && editorState.healSourceAnchor) {
 			showSourceIndicator = true;
-			// In manual mode during drag, the source moves in lockstep
 			if (isDrawing && strokePoints.length > 0) {
 				const firstPoint = strokePoints[0];
 				const offsetX = editorState.healSourceAnchor.x - firstPoint.x;
@@ -273,7 +345,6 @@
 
 		if (!isDrawing) return;
 
-		// Collect stroke points (subsample for performance)
 		const lastPoint = strokePoints[strokePoints.length - 1];
 		const dx = coords.x - lastPoint.x;
 		const dy = coords.y - lastPoint.y;
@@ -282,7 +353,6 @@
 
 		if (dist >= stepSize) {
 			strokePoints.push(coords);
-			// Apply heal stamp at this point immediately for feedback
 			applyHealAtPoint(coords.x, coords.y);
 		}
 	}
@@ -293,15 +363,35 @@
 			e.target.releasePointerCapture(e.pointerId);
 		}
 
-		// Apply final heal at last position
 		if (strokePoints.length > 0) {
 			const lastCoord = getIntrinsicCoordinates(e.clientX, e.clientY);
 			applyHealAtPoint(lastCoord.x, lastCoord.y);
 		}
 
 		isDrawing = false;
+		if (strokePoints.length > 0 && editorState.activePage) {
+			const newStroke = {
+				points: strokePoints,
+				brushSize: editorState.brushSize,
+				brushColor: editorState.brushColor,
+				type: 'heal' as const,
+				hardness: editorState.healBrushHardness,
+				sourceMode: editorState.healSourceMode,
+				sourceAnchor: editorState.healSourceAnchor ? { ...editorState.healSourceAnchor } : null
+			};
+			editorState.activePage.redrawingStrokes.push(newStroke);
+
+			if (pendingSnapshot) {
+				historyManager.recordSnapshotChange(editorState.activePageId!, pendingSnapshot);
+				pendingSnapshot = null;
+			}
+
+			lastStrokesJson = JSON.stringify(editorState.activePage.redrawingStrokes);
+
+			editorState.saveRedrawingStrokes();
+		}
 		strokePoints = [];
-		renderDisplay();
+		activeOverlayImageData = null;
 	}
 
 	// ─── Core Heal Application ──────────────────────────────────────────────
@@ -309,24 +399,25 @@
 	function applyHealAtPoint(destX: number, destY: number) {
 		if (!originalPageCanvas || !editOverlayCanvas) return;
 
-		const origCtx = originalPageCanvas.getContext('2d')!;
 		const editCtx = editOverlayCanvas.getContext('2d')!;
 
 		const w = originalPageCanvas.width;
 		const h = originalPageCanvas.height;
 		const radius = editorState.brushSize / 2;
 
-		// Get pixel data from immutable original
-		const originalData = origCtx.getImageData(0, 0, w, h).data;
-		// Get pixel data from current edit overlay
-		const overlayImageData = editCtx.getImageData(0, 0, w, h);
+		let originalData = originalImageData;
+		if (!originalData) {
+			const origCtx = originalPageCanvas.getContext('2d')!;
+			originalData = origCtx.getImageData(0, 0, w, h).data;
+		}
+
+		const overlayImageData = activeOverlayImageData ?? editCtx.getImageData(0, 0, w, h);
 		const overlayData = overlayImageData.data;
 
 		let sourceX: number;
 		let sourceY: number;
 
 		if (editorState.healSourceMode === 'manual' && editorState.healSourceAnchor) {
-			// Manual source: lockstep offset from anchor
 			if (strokePoints.length > 0) {
 				const firstPoint = strokePoints[0];
 				const offsetX = editorState.healSourceAnchor.x - firstPoint.x;
@@ -338,9 +429,8 @@
 				sourceY = editorState.healSourceAnchor.y;
 			}
 		} else {
-			// Auto-spot mode: find best source from surrounding ring
 			const autoSource = findAutoSourceOffset(
-				new Uint8ClampedArray(originalData),
+				originalData,
 				Math.round(destX),
 				Math.round(destY),
 				Math.round(radius),
@@ -351,14 +441,12 @@
 			sourceY = autoSource.sourceY;
 		}
 
-		// Clamp source coordinates
 		sourceX = Math.max(radius + 1, Math.min(w - radius - 1, sourceX));
 		sourceY = Math.max(radius + 1, Math.min(h - radius - 1, sourceY));
 
-		// Run the 3-phase heal pipeline
 		const result = healPatch(
-			new Uint8ClampedArray(originalData),
-			new Uint8ClampedArray(overlayData),
+			originalData,
+			overlayData,
 			sourceX,
 			sourceY,
 			destX,
@@ -370,14 +458,11 @@
 		);
 
 		if (result) {
-			// Apply the healed patch to the overlay
 			applyHealResult(overlayImageData.data, w, result);
 			editCtx.putImageData(overlayImageData, 0, 0);
 			renderDisplay();
 		}
 	}
-
-	// ─── Pointer Enter/Leave ────────────────────────────────────────────────
 
 	function handlePointerEnter() {
 		if (isActive) {
@@ -390,20 +475,15 @@
 		renderCursorHUD();
 	}
 
-	// ─── Keyboard Events (Shift for hardness) ───────────────────────────────
-
 	function handleKeyDown(e: KeyboardEvent) {
 		if (!isActive) return;
-
-		// Shift+drag changes hardness — we just track shift state
-		// The actual hardness change happens during pointer move
 	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	bind:this={containerDiv}
-	class="absolute top-0 left-0 z-41 h-full w-full"
+	class="absolute top-0 left-0 z-39 h-full w-full"
 	style="pointer-events: {isActive ? 'auto' : 'none'}; cursor: none;"
 	onpointerdown={handlePointerDown}
 	onpointermove={handlePointerMove}
@@ -411,8 +491,7 @@
 	onpointerenter={handlePointerEnter}
 	onpointerleave={handlePointerLeave}
 >
-	<!-- Display canvas: shows the healed result -->
-	{#if isActive && isReady}
+	{#if isSessionActive && isReady}
 		<canvas
 			bind:this={displayCanvas}
 			width={intrinsicWidth}
@@ -422,7 +501,6 @@
 		></canvas>
 	{/if}
 
-	<!-- Cursor HUD canvas: brush circle, source indicator -->
 	{#if isActive}
 		<canvas
 			bind:this={cursorCanvas}

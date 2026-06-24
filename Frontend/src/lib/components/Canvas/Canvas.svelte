@@ -12,6 +12,7 @@
 	import RedrawingToolbar from './Toolbar/RedrawingToolbar.svelte';
 	import TypesettingOverlay from './TypesettingOverlay.svelte';
 	import TypesettingToolbar from './Toolbar/TypesettingToolbar.svelte';
+import { findAutoSourceOffset, healPatch, applyHealResult } from '$lib/stores/HealEngine';
 
 	const BACKEND_URL = 'http://127.0.0.1:8000';
 
@@ -547,7 +548,8 @@
 			fontStyle: 'normal' as 'normal' | 'italic',
 			writingMode: 'horizontal' as 'horizontal' | 'vertical',
 			outline: false,
-			outlineColor: '#ffffff'
+			outlineColor: '#ffffff',
+			outlineWidth: 2
 		};
 
 		// 1. Pre-load all required custom fonts to ensure canvas has them ready before any layout/drawing
@@ -647,6 +649,69 @@
 			overlayCtx.drawImage(maskCanvas, 0, 0, width, height);
 		}
 
+		// Draw heal strokes
+		const healStrokes = (page.redrawingStrokes ?? []).filter(
+			(s: any) => s.type === 'heal'
+		);
+		if (healStrokes.length > 0) {
+			const origCtx = canvas.getContext('2d')!;
+			const origData = origCtx.getImageData(0, 0, width, height).data;
+			const overlayImageData = overlayCtx.getImageData(0, 0, width, height);
+			const overlayData = overlayImageData.data;
+
+			for (const stroke of healStrokes) {
+				const radius = stroke.brushSize / 2;
+				const hardness = stroke.hardness ?? 0.75;
+				const sourceMode = stroke.sourceMode ?? 'auto';
+				const sourceAnchor = stroke.sourceAnchor ?? null;
+
+				for (const coords of stroke.points) {
+					let sourceX: number;
+					let sourceY: number;
+
+					if (sourceMode === 'manual' && sourceAnchor) {
+						const firstPoint = stroke.points[0];
+						const offsetX = sourceAnchor.x - firstPoint.x;
+						const offsetY = sourceAnchor.y - firstPoint.y;
+						sourceX = coords.x + offsetX;
+						sourceY = coords.y + offsetY;
+					} else {
+						const autoSource = findAutoSourceOffset(
+							origData,
+							Math.round(coords.x),
+							Math.round(coords.y),
+							Math.round(radius),
+							width,
+							height
+						);
+						sourceX = autoSource.sourceX;
+						sourceY = autoSource.sourceY;
+					}
+
+					sourceX = Math.max(radius + 1, Math.min(width - radius - 1, sourceX));
+					sourceY = Math.max(radius + 1, Math.min(height - radius - 1, sourceY));
+
+					const result = healPatch(
+						origData,
+						overlayData,
+						sourceX,
+						sourceY,
+						coords.x,
+						coords.y,
+						Math.round(radius),
+						hardness,
+						width,
+						height
+					);
+
+					if (result) {
+						applyHealResult(overlayImageData.data, width, result);
+					}
+				}
+			}
+			overlayCtx.putImageData(overlayImageData, 0, 0);
+		}
+
 		// 3. Typesetting overlays
 		await document.fonts.ready;
 
@@ -693,7 +758,7 @@
 						const drawY = startY + charObj.y;
 
 						if (style.outline) {
-							overlayCtx.lineWidth = Math.max(2, computedFontSize * 0.15);
+							overlayCtx.lineWidth = (style.outlineWidth ?? 2) * 2;
 							overlayCtx.strokeStyle = style.outlineColor ?? '#ffffff';
 							overlayCtx.lineJoin = 'round';
 							overlayCtx.lineCap = 'round';
@@ -717,7 +782,7 @@
 						const drawY = startY + line.y;
 
 						if (style.outline) {
-							overlayCtx.lineWidth = Math.max(2, computedFontSize * 0.15);
+							overlayCtx.lineWidth = (style.outlineWidth ?? 2) * 2;
 							overlayCtx.strokeStyle = style.outlineColor ?? '#ffffff';
 							overlayCtx.lineJoin = 'round';
 							overlayCtx.lineCap = 'round';
@@ -921,6 +986,11 @@
 						{/if}
 
 						<RedrawingOverlay
+							intrinsicWidth={canvasDimensions.width}
+							intrinsicHeight={canvasDimensions.height}
+						/>
+
+						<HealingOverlay
 							intrinsicWidth={canvasDimensions.width}
 							intrinsicHeight={canvasDimensions.height}
 						/>

@@ -144,7 +144,10 @@
 		editorState.saveTypesetting();
 	}
 	let hoveredBubbleId = $state<number | null>(null);
-	let editingBubbleId = $state<number | null>(null);
+	let activeVertexBubbleId = $state<number | null>(null);
+	let activePointIndex = $state<number | null>(null);
+	let vertexDragStartX = 0;
+	let vertexDragStartY = 0;
 
 	function handleBubbleAction(e: PointerEvent, bubbleId: number) {
 		e.stopPropagation();
@@ -164,11 +167,6 @@
 			return true;
 		}
 
-		if (editorState.activeTypesettingTool === 'edit') {
-			editingBubbleId = bubbleId;
-			return true;
-		}
-
 		return false;
 	}
 
@@ -181,21 +179,60 @@
 	let drawCurrentX = $state(0);
 	let drawCurrentY = $state(0);
 
-	function focusAndSelect(node: HTMLTextAreaElement) {
-		node.focus();
-		node.select();
-	}
-
 	function handleBubbleDblClick(e: MouseEvent, bubbleId: number) {
 		e.stopPropagation();
 		e.preventDefault();
-		editingBubbleId = bubbleId;
+		editorState.activeBubbleId = bubbleId;
 	}
 
-	async function handleEditEnd(bubbleId: number) {
-		editingBubbleId = null;
-		await editorState.saveTypesetting();
-		await editorState.saveBubbles();
+	function handleVertexPointerDown(e: PointerEvent, bubbleId: number, pointIndex: number) {
+		if (editorState.activeTypesettingTool !== 'edit') return;
+		e.stopPropagation();
+		e.preventDefault();
+
+		pendingSnapshot = historyManager.captureSnapshot(editorState.activePageId!);
+
+		editorState.activeBubbleId = bubbleId;
+
+		activeVertexBubbleId = bubbleId;
+		activePointIndex = pointIndex;
+
+		const coords = getIntrinsicCoordinates(e.clientX, e.clientY);
+		vertexDragStartX = coords.x;
+		vertexDragStartY = coords.y;
+
+		window.addEventListener('pointermove', handleVertexPointerMove);
+		window.addEventListener('pointerup', handleVertexPointerUp);
+	}
+
+	function handleVertexPointerMove(e: PointerEvent) {
+		if (activeVertexBubbleId === null || activePointIndex === null || !editorState.activePage) return;
+		e.preventDefault();
+
+		const bubble = editorState.activePage.bubbles.find((b) => b.id === activeVertexBubbleId);
+		if (!bubble) return;
+
+		const coords = getIntrinsicCoordinates(e.clientX, e.clientY);
+		bubble.points[activePointIndex].x = coords.x;
+		bubble.points[activePointIndex].y = coords.y;
+	}
+
+	function handleVertexPointerUp(e: PointerEvent) {
+		if (activeVertexBubbleId === null) return;
+
+		activeVertexBubbleId = null;
+		activePointIndex = null;
+
+		window.removeEventListener('pointermove', handleVertexPointerMove);
+		window.removeEventListener('pointerup', handleVertexPointerUp);
+
+		if (pendingSnapshot) {
+			historyManager.recordSnapshotChange(editorState.activePageId!, pendingSnapshot);
+			pendingSnapshot = null;
+		}
+
+		editorState.saveBubbles();
+		editorState.saveTypesetting();
 	}
 
 	function handleSvgPointerDown(e: PointerEvent) {
@@ -267,7 +304,6 @@
 
 		page.bubbles.push(newBubble);
 		editorState.activeBubbleId = newId;
-		editingBubbleId = newId;
 
 		// Switch tool back to select so they can interact with the new bubble
 		editorState.setTypesettingTool('select');
@@ -325,7 +361,7 @@
 						: (isSelected && interactive ? '#6366f1' : 'rgba(156, 163, 175, 0.4)')}
 					stroke-width={intrinsicWidth * (isSelected && interactive ? 0.002 : 0.0012)}
 					stroke-dasharray={isSelected && interactive ? 'none' : `${intrinsicWidth * 0.005}`}
-					class="{interactive ? (editorState.activeTypesettingTool === 'delete' ? 'cursor-pointer hover:fill-red-200/30' : (editorState.activeTypesettingTool === 'edit' ? 'cursor-text' : 'cursor-pointer')) : ''} transition-colors duration-150"
+					class="{interactive ? (editorState.activeTypesettingTool === 'delete' ? 'cursor-pointer hover:fill-red-200/30' : (editorState.activeTypesettingTool === 'edit' ? 'cursor-default' : 'cursor-pointer')) : ''} transition-colors duration-150"
 					onpointerdown={interactive ? (e) => handleBubbleClick(e, bubble.id) : null}
 					ondblclick={interactive ? (e) => handleBubbleDblClick(e, bubble.id) : null}
 					onpointerenter={() => {
@@ -336,113 +372,95 @@
 					}}
 				></polygon>
 				<!-- Text rendered inside the bubble via foreignObject -->
-				{#if bubble.en_text?.trim() || editingBubbleId === bubble.id}
+				{#if bubble.en_text?.trim()}
 					<foreignObject 
 						x={bbox.x + (style.offsetX ?? 0)} 
 						y={bbox.y + (style.offsetY ?? 0)} 
 						width={bbox.width} 
 						height={bbox.height}
 					>
-						{#if editingBubbleId === bubble.id}
-							<textarea
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div
+							class="typeset-text-container"
+							style="
+								width: 100%;
+								height: 100%;
+								display: flex;
+								align-items: center;
+								justify-content: center;
+								overflow: hidden;
+								pointer-events: {interactive ? 'auto' : 'none'};
+								cursor: {interactive 
+									? (editorState.activeTypesettingTool === 'drag' 
+										? 'move' 
+										: (editorState.activeTypesettingTool === 'edit' 
+											? 'default' 
+											: (editorState.activeTypesettingTool === 'delete' 
+												? 'pointer' 
+												: 'pointer'))) 
+									: 'default'};
+								padding: {padding}px;
+								box-sizing: border-box;
+								border: {editorState.activeTypesettingTool === 'drag' 
+									? (isSelected ? '1.5px dashed #6366f1' : '1px dashed rgba(156, 163, 175, 0.5)') 
+									: '1px dashed transparent'};
+								border-radius: 4px;
+								background-color: {isSelected && editorState.activeTypesettingTool === 'drag' ? 'rgba(99, 102, 241, 0.04)' : 'transparent'};
+								transition: border-color 0.15s, background-color 0.15s;
+							"
+							onpointerdown={interactive ? (e) => handleTextPointerDown(e, bubble.id) : null}
+							ondblclick={interactive ? (e) => handleBubbleDblClick(e, bubble.id) : null}
+							onpointerenter={() => {
+								if (interactive) hoveredBubbleId = bubble.id;
+							}}
+							onpointerleave={() => {
+								if (interactive) hoveredBubbleId = null;
+							}}
+						>
+							<div
+								class="typeset-text"
 								style="
-									width: 100%;
-									height: 100%;
 									font-family: '{style.fontFamily}', 'Comic Neue', 'Comic Sans MS', sans-serif;
 									font-size: {computedFontSize}px;
 									font-weight: {style.fontWeight};
 									font-style: {style.fontStyle ?? 'normal'};
+									writing-mode: {style.writingMode === 'vertical' ? 'vertical-rl' : 'horizontal-tb'};
+									text-orientation: {style.writingMode === 'vertical' ? 'upright' : 'mixed'};
 									color: {style.fontColor};
 									text-align: {style.textAlign};
 									line-height: {style.lineHeight};
 									letter-spacing: {style.letterSpacing}px;
-									background-color: rgba(255, 255, 255, 0.95);
-									border: 2px solid #6366f1;
-									border-radius: 4px;
-									padding: {padding}px;
-									box-sizing: border-box;
-									resize: none;
-									overflow: hidden;
-									text-transform: uppercase;
-									writing-mode: {style.writingMode === 'vertical' ? 'vertical-rl' : 'horizontal-tb'};
-								"
-								bind:value={bubble.en_text}
-								use:focusAndSelect
-								onblur={() => handleEditEnd(bubble.id)}
-								onpointerdown={(e) => e.stopPropagation()}
-								onkeydown={(e) => {
-									if (e.key === 'Escape' || (e.key === 'Enter' && !e.shiftKey)) {
-										e.preventDefault();
-										(e.target as HTMLTextAreaElement).blur();
-									}
-								}}
-							></textarea>
-						{:else}
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<div
-								class="typeset-text-container"
-								style="
+									word-break: break-word;
+									overflow-wrap: break-word;
+									white-space: pre-wrap;
+									user-select: none;
 									width: 100%;
-									height: 100%;
-									display: flex;
-									align-items: center;
-									justify-content: center;
-									overflow: hidden;
-									pointer-events: {interactive ? 'auto' : 'none'};
-									cursor: {interactive 
-										? (editorState.activeTypesettingTool === 'drag' 
-											? 'move' 
-											: (editorState.activeTypesettingTool === 'edit' 
-												? 'text' 
-												: (editorState.activeTypesettingTool === 'delete' 
-													? 'pointer' 
-													: 'pointer'))) 
-										: 'default'};
-									padding: {padding}px;
-									box-sizing: border-box;
-									border: {editorState.activeTypesettingTool === 'drag' 
-										? (isSelected ? '1.5px dashed #6366f1' : '1px dashed rgba(156, 163, 175, 0.5)') 
-										: '1px dashed transparent'};
-									border-radius: 4px;
-									background-color: {isSelected && editorState.activeTypesettingTool === 'drag' ? 'rgba(99, 102, 241, 0.04)' : 'transparent'};
-									transition: border-color 0.15s, background-color 0.15s;
+									text-transform: uppercase;
+									-webkit-text-stroke: {style.outline ? `${style.outlineWidth ?? 2}px ${style.outlineColor ?? '#ffffff'}` : 'none'};
+									paint-order: stroke fill;
 								"
-								onpointerdown={interactive ? (e) => handleTextPointerDown(e, bubble.id) : null}
-								ondblclick={interactive ? (e) => handleBubbleDblClick(e, bubble.id) : null}
-								onpointerenter={() => {
-									if (interactive) hoveredBubbleId = bubble.id;
-								}}
-								onpointerleave={() => {
-									if (interactive) hoveredBubbleId = null;
-								}}
 							>
-								<div
-									class="typeset-text"
-									style="
-										font-family: '{style.fontFamily}', 'Comic Neue', 'Comic Sans MS', sans-serif;
-										font-size: {computedFontSize}px;
-										font-weight: {style.fontWeight};
-										font-style: {style.fontStyle ?? 'normal'};
-										writing-mode: {style.writingMode === 'vertical' ? 'vertical-rl' : 'horizontal-tb'};
-										text-orientation: {style.writingMode === 'vertical' ? 'upright' : 'mixed'};
-										color: {style.fontColor};
-										text-align: {style.textAlign};
-										line-height: {style.lineHeight};
-										letter-spacing: {style.letterSpacing}px;
-										word-break: break-word;
-										overflow-wrap: break-word;
-										white-space: pre-wrap;
-										user-select: none;
-										width: 100%;
-										text-transform: uppercase;
-										text-shadow: {style.outline ? `-1px -1px 0 ${style.outlineColor ?? '#ffffff'}, 1px -1px 0 ${style.outlineColor ?? '#ffffff'}, -1px 1px 0 ${style.outlineColor ?? '#ffffff'}, 1px 1px 0 ${style.outlineColor ?? '#ffffff'}, 0 0 4px ${style.outlineColor ?? '#ffffff'}, 0 0 4px ${style.outlineColor ?? '#ffffff'}` : 'none'};
-									"
-								>
-									{bubble.en_text}
-								</div>
+								{bubble.en_text}
 							</div>
-						{/if}
+						</div>
 					</foreignObject>
+				{/if}
+
+				<!-- Polygon edit handles -->
+				{#if interactive && editorState.activeTypesettingTool === 'edit' && isSelected}
+					{#each bubble.points as point, i}
+						<circle
+							cx={point.x}
+							cy={point.y}
+							r={intrinsicWidth * 0.004}
+							fill="white"
+							stroke="#6366f1"
+							stroke-width="2"
+							class="cursor-crosshair transition-transform hover:scale-150"
+							style="transform-origin: {point.x}px {point.y}px;"
+							onpointerdown={(e) => handleVertexPointerDown(e, bubble.id, i)}
+						></circle>
+					{/each}
 				{/if}
 			</g>
 		{/each}
